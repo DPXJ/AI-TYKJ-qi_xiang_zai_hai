@@ -227,7 +227,7 @@ const pageData = {
                     <!-- 推荐智能体 -->
                     <div class="recommended-agents">
                         <div class="agents-hint">快速访问</div>
-                        <div class="agents-grid">
+                        <div class="agents-grid agents-scroll">
                             <div class="agent-card weather-disaster-card" onclick="loadWeatherDisasterHome()">
                                 <i class="fas fa-cloud-sun-rain"></i>
                                 <span>气象灾害预警</span>
@@ -239,10 +239,6 @@ const pageData = {
                             <div class="agent-card" onclick="loadAgentChatPage('weed-control-analysis', '除草成效分析')">
                                 <i class="fas fa-spray-can"></i>
                                 <span>除草成效分析</span>
-                            </div>
-                            <div class="agent-card" onclick="loadAgentChatPage('crop-model-brain', '农作物模型大脑')">
-                                <i class="fas fa-brain"></i>
-                                <span>农作物模型大脑</span>
                             </div>
                         </div>
                     </div>
@@ -4142,44 +4138,6 @@ const pageData = {
                     </div>
                 </div>
 
-                <!-- 例子弹窗 -->
-                <div id="weatherExamplesModal" class="examples-modal">
-                    <div class="modal-overlay" onclick="hideWeatherExamplesModal()"></div>
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>常见问题示例</h3>
-                            <button class="close-btn" onclick="hideWeatherExamplesModal()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="example-item" onclick="selectWeatherExample(&quot;柘城县未来7天天气如何？&quot;)">
-                                <div class="example-title">未来趋势</div>
-                                <div class="example-desc">柘城县未来7天天气如何？</div>
-                            </div>
-                            <div class="example-item" onclick="selectWeatherExample(&quot;最近有什么预警信息？&quot;)">
-                                <div class="example-title">预警查询</div>
-                                <div class="example-desc">最近有什么预警信息？</div>
-                            </div>
-                            <div class="example-item" onclick="selectWeatherExample(&quot;适合打药吗？&quot;)">
-                                <div class="example-title">农事建议</div>
-                                <div class="example-desc">适合打药吗？</div>
-                            </div>
-                            <div class="example-item" onclick="selectWeatherExample(&quot;柘城县历史灾害统计&quot;)">
-                                <div class="example-title">历史统计</div>
-                                <div class="example-desc">柘城县历史灾害统计</div>
-                            </div>
-                            <div class="example-item" onclick="selectWeatherExample(&quot;查询郑州市的预警信息&quot;)">
-                                <div class="example-title">跨区域查询</div>
-                                <div class="example-desc">查询郑州市的预警信息</div>
-                            </div>
-                            <div class="example-item" onclick="selectWeatherExample(&quot;今天会下雨吗？&quot;)">
-                                <div class="example-title">实时天气</div>
-                                <div class="example-desc">今天会下雨吗？</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         `
     },
@@ -7438,6 +7396,72 @@ function stopInactivityTimer() {
 // 加载气象灾害预警主页
 function loadWeatherDisasterHome() {
     loadPage('weatherDisasterHome');
+    // 页面加载后，创建弹窗并添加到body
+    setTimeout(() => {
+        createWeatherExamplesModal();
+    }, 100);
+}
+
+// 创建气象例子弹窗（如果不存在）
+function createWeatherExamplesModal() {
+    // 如果弹窗已存在，先移除
+    const existingModal = document.getElementById('weatherExamplesModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // 获取手机内容容器
+    const phoneContent = document.getElementById('phoneContent');
+    if (!phoneContent) {
+        console.error('phoneContent not found!');
+        return;
+    }
+    
+    // 创建新的弹窗
+    const modal = document.createElement('div');
+    modal.id = 'weatherExamplesModal';
+    modal.className = 'weather-examples-modal';
+    modal.innerHTML = `
+        <div class="weather-modal-overlay" onclick="hideWeatherExamplesModal()"></div>
+        <div class="weather-modal-content">
+            <div class="weather-modal-header">
+                <h3>常见问题示例</h3>
+                <button class="weather-modal-close" onclick="hideWeatherExamplesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="weather-modal-body">
+                <div class="weather-example-item" onclick="selectWeatherExample('柘城县未来7天天气如何？')">
+                    <div class="weather-example-title">未来趋势</div>
+                    <div class="weather-example-desc">柘城县未来7天天气如何？</div>
+                </div>
+                <div class="weather-example-item" onclick="selectWeatherExample('最近有什么预警信息？')">
+                    <div class="weather-example-title">预警查询</div>
+                    <div class="weather-example-desc">最近有什么预警信息？</div>
+                </div>
+                <div class="weather-example-item" onclick="selectWeatherExample('适合打药吗？')">
+                    <div class="weather-example-title">农事建议</div>
+                    <div class="weather-example-desc">适合打药吗？</div>
+                </div>
+                <div class="weather-example-item" onclick="selectWeatherExample('柘城县历史灾害统计')">
+                    <div class="weather-example-title">历史统计</div>
+                    <div class="weather-example-desc">柘城县历史灾害统计</div>
+                </div>
+                <div class="weather-example-item" onclick="selectWeatherExample('查询郑州市的预警信息')">
+                    <div class="weather-example-title">跨区域查询</div>
+                    <div class="weather-example-desc">查询郑州市的预警信息</div>
+                </div>
+                <div class="weather-example-item" onclick="selectWeatherExample('今天会下雨吗？')">
+                    <div class="weather-example-title">实时天气</div>
+                    <div class="weather-example-desc">今天会下雨吗？</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 添加到手机内容容器
+    phoneContent.appendChild(modal);
+    console.log('Weather examples modal created and added to phoneContent');
 }
 
 // 开始气象灾害预警主页对话
@@ -7460,21 +7484,49 @@ function startWeatherHomeChat() {
 
 // 显示气象例子弹窗
 function showWeatherExamplesModal() {
-    const modal = document.getElementById('weatherExamplesModal');
-    if (modal) {
-        modal.classList.add('show');
-        // 禁止页面滚动
-        document.body.style.overflow = 'hidden';
+    console.log('showWeatherExamplesModal called');
+    
+    // 确保弹窗存在
+    let modal = document.getElementById('weatherExamplesModal');
+    if (!modal) {
+        createWeatherExamplesModal();
+        modal = document.getElementById('weatherExamplesModal');
     }
+    
+    if (!modal) {
+        console.error('Failed to create weather examples modal!');
+        return;
+    }
+    
+    // 确保弹窗在phoneContent内
+    const phoneContent = document.getElementById('phoneContent');
+    if (phoneContent && !phoneContent.contains(modal)) {
+        phoneContent.appendChild(modal);
+        console.log('Modal moved to phoneContent');
+    }
+    
+    // 显示弹窗
+    modal.classList.add('active');
+    // 禁止手机内容区域滚动
+    if (phoneContent) {
+        phoneContent.style.overflow = 'hidden';
+    }
+    
+    console.log('Modal shown, classes:', modal.className);
 }
 
 // 隐藏气象例子弹窗
 function hideWeatherExamplesModal() {
+    console.log('hideWeatherExamplesModal called');
     const modal = document.getElementById('weatherExamplesModal');
     if (modal) {
-        modal.classList.remove('show');
-        // 恢复页面滚动
-        document.body.style.overflow = '';
+        modal.classList.remove('active');
+        // 恢复手机内容区域滚动
+        const phoneContent = document.getElementById('phoneContent');
+        if (phoneContent) {
+            phoneContent.style.overflow = '';
+        }
+        console.log('Modal hidden');
     }
 }
 
