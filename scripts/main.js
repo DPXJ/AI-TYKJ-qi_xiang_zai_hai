@@ -39,6 +39,22 @@ const pageData = {
                     <h1>首页</h1>
                 </div>
                 <div class="mobile-content">
+                    <!-- 气象灾害预警Banner -->
+                    <div class="weather-alert-banner" id="weatherAlertBanner" onclick="loadWeatherReport()">
+                        <div class="banner-content">
+                            <div class="banner-icon" id="bannerIcon">
+                                <i class="fas fa-cloud-sun-rain"></i>
+                            </div>
+                            <div class="banner-text">
+                                <div class="banner-title" id="bannerTitle">柘城县今日气象平稳，适宜农事作业</div>
+                                <div class="banner-subtitle">点击查看详细报告</div>
+                            </div>
+                            <div class="banner-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 组织卡片 -->
                     <div class="card org-card">
                         <div class="org-row">
@@ -4204,6 +4220,30 @@ const pageData = {
                 </div>
             </div>
         `
+    },
+    
+    // 区域气象灾害分析报告页面
+    weatherReport: {
+        title: '区域气象灾害分析报告',
+        subtitle: '',
+        content: `
+            <div class="mobile-page weather-report-page">
+                <div class="mobile-header">
+                    <button class="back-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">
+                        <h1>区域气象灾害分析报告</h1>
+                    </div>
+                    <button class="share-btn" onclick="shareWeatherReport()">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+                <div class="weather-report-content" id="weatherReportContent">
+                    <!-- 内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        `
     }
 };
 let currentPage = 'home';
@@ -5110,11 +5150,19 @@ function loadPage(pageName, param) {
         // 滚动到顶部
         phoneContent.scrollTop = 0;
         
-        // 如果是首页，初始化AI诊断功能
+        // 如果是首页，初始化AI诊断功能和气象预警banner
         if (pageName === 'home') {
             setTimeout(() => {
                 console.log('Initializing inline AI diagnosis features...');
                 setupInlineAIDiagnosis();
+                initWeatherAlertBanner();
+            }, 100);
+        }
+        
+        // 如果是报告页面，初始化报告内容
+        if (pageName === 'weatherReport') {
+            setTimeout(() => {
+                renderWeatherReport();
             }, 100);
         }
         
@@ -8677,4 +8725,416 @@ function likeWeatherMessage(btn) {
     btn.innerHTML = '<i class="fas fa-thumbs-up"></i>';
     btn.style.color = '#21c08b';
     showNotification('感谢您的反馈', 'success');
+}
+
+// ==================== 气象灾害预警报告相关函数 ====================
+
+// 初始化气象预警Banner
+function initWeatherAlertBanner() {
+    const banner = document.getElementById('weatherAlertBanner');
+    if (!banner) return;
+    
+    // 获取当前位置（模拟数据，实际应从GPS或用户设置获取）
+    const location = {
+        city: '柘城县',
+        province: '河南省商丘市',
+        lat: 34.0865,
+        lng: 115.6699
+    };
+    
+    // 获取当前预警状态（模拟数据）
+    const alertStatus = getCurrentAlertStatus(location);
+    
+    // 更新Banner样式和内容
+    updateWeatherBanner(banner, alertStatus, location);
+}
+
+// 获取当前预警状态（模拟数据）
+function getCurrentAlertStatus(location) {
+    // 模拟数据：实际应从API获取
+    const alerts = [
+        { type: 'rain', level: 'yellow', text: '暴雨黄色预警生效中', time: '2024-10-27 08:00' }
+    ];
+    
+    // 计算最高预警级别
+    let maxLevel = 'none'; // none, blue, yellow, orange, red
+    if (alerts.length > 0) {
+        const levels = alerts.map(a => a.level);
+        if (levels.includes('red')) maxLevel = 'red';
+        else if (levels.includes('orange')) maxLevel = 'orange';
+        else if (levels.includes('yellow')) maxLevel = 'yellow';
+        else if (levels.includes('blue')) maxLevel = 'blue';
+    }
+    
+    return {
+        level: maxLevel,
+        alerts: alerts,
+        hasAlert: alerts.length > 0
+    };
+}
+
+// 更新Banner显示
+function updateWeatherBanner(banner, alertStatus, location) {
+    const bannerIcon = document.getElementById('bannerIcon');
+    const bannerTitle = document.getElementById('bannerTitle');
+    
+    if (!banner || !bannerIcon || !bannerTitle) return;
+    
+    // 根据预警级别设置样式
+    let bgColor, icon, title, iconClass;
+    
+    if (alertStatus.level === 'red' || alertStatus.level === 'orange') {
+        // 危急态
+        bgColor = 'linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)';
+        icon = '<i class="fas fa-exclamation-triangle"></i>';
+        title = `紧急：${location.city}${alertStatus.alerts[0]?.text || '发布气象预警'}！点击查看防灾报告`;
+        iconClass = 'danger';
+    } else if (alertStatus.level === 'yellow') {
+        // 关注态
+        bgColor = 'linear-gradient(135deg, #faad14 0%, #d48806 100%)';
+        icon = '<i class="fas fa-wind"></i>';
+        title = `${location.city}${alertStatus.alerts[0]?.text || '发布气象预警'}，请注意防范`;
+        iconClass = 'warning';
+    } else {
+        // 平安态
+        bgColor = 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)';
+        icon = '<i class="fas fa-sun"></i>';
+        title = `${location.city}今日气象平稳，适宜农事作业`;
+        iconClass = 'safe';
+    }
+    
+    banner.style.background = bgColor;
+    bannerIcon.innerHTML = icon;
+    bannerIcon.className = `banner-icon ${iconClass}`;
+    bannerTitle.textContent = title;
+}
+
+// 加载气象报告页面
+function loadWeatherReport() {
+    loadPage('weatherReport');
+}
+
+// 渲染气象报告内容
+function renderWeatherReport() {
+    const container = document.getElementById('weatherReportContent');
+    if (!container) return;
+    
+    // 获取当前位置和预警数据
+    const location = {
+        city: '柘城县',
+        province: '河南省商丘市',
+        fullName: '河南省商丘市柘城县',
+        lat: 34.0865,
+        lng: 115.6699
+    };
+    
+    const reportData = generateWeatherReportData(location);
+    
+    container.innerHTML = generateReportHTML(reportData, location);
+    
+    // 滚动到顶部
+    container.scrollTop = 0;
+}
+
+// 生成报告数据（模拟数据）
+function generateWeatherReportData(location) {
+    // 当前预警
+    const currentAlerts = [
+        {
+            type: 'rain',
+            level: 'yellow',
+            title: '暴雨黄色预警',
+            time: '2024-10-27 08:00',
+            unit: '商丘市气象台',
+            content: '预计未来6小时内，柘城县部分地区降雨量将达50毫米以上，请注意防范。'
+        }
+    ];
+    
+    // 历史统计（过去30天）
+    const historyStats = {
+        total: 5,
+        byType: [
+            { type: '大风', count: 3, percent: 60 },
+            { type: '暴雨', count: 1, percent: 20 },
+            { type: '高温', count: 1, percent: 20 }
+        ],
+        trend: [
+            { date: '10-01', count: 0 },
+            { date: '10-05', count: 1 },
+            { date: '10-10', count: 0 },
+            { date: '10-15', count: 2 },
+            { date: '10-20', count: 1 },
+            { date: '10-25', count: 1 },
+            { date: '10-27', count: 1 }
+        ]
+    };
+    
+    // 农业影响分析
+    const cropImpacts = [
+        {
+            crop: '辣椒',
+            riskLevel: 'high',
+            riskText: '高风险',
+            impact: '当前暴雨预警可能导致低洼地块积水，辣椒根系浅，浸泡超过12小时极易引发根腐病和疫病，导致死棵。',
+            isMain: true
+        },
+        {
+            crop: '夏玉米',
+            riskLevel: 'medium',
+            riskText: '中风险',
+            impact: '伴随的6级阵风可能导致部分高秆玉米倒伏。'
+        },
+        {
+            crop: '设施农业（大棚）',
+            riskLevel: 'low',
+            riskText: '低风险',
+            impact: '当前风力对标准钢架大棚无威胁，注意关闭风口防雨即可。'
+        }
+    ];
+    
+    // 防范建议
+    const advice = [
+        '立即排水：请在雨停后2小时内疏通田间沟渠，确保田间无积水。',
+        '药剂预防：退水后，建议喷施一次"瑞苗清"或"甲霜·恶霉灵"预防根部病害。',
+        '大棚管理：检查压膜线是否松动，防止大风撕膜。',
+        '作物加固：对高秆作物进行适当加固，防止倒伏。'
+    ];
+    
+    // 风险指数计算
+    let riskScore = 0;
+    if (currentAlerts.length > 0) {
+        currentAlerts.forEach(alert => {
+            if (alert.level === 'red') riskScore += 40;
+            else if (alert.level === 'orange') riskScore += 30;
+            else if (alert.level === 'yellow') riskScore += 20;
+            else if (alert.level === 'blue') riskScore += 10;
+        });
+    }
+    
+    const riskLevel = riskScore >= 30 ? '高风险' : riskScore >= 15 ? '中风险' : '低风险';
+    
+    return {
+        currentAlerts,
+        historyStats,
+        cropImpacts,
+        advice,
+        riskScore,
+        riskLevel,
+        updateTime: new Date().toLocaleString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        })
+    };
+}
+
+// 生成报告HTML
+function generateReportHTML(data, location) {
+    const alertsHTML = data.currentAlerts.length > 0 ? 
+        data.currentAlerts.map(alert => `
+            <div class="report-alert-card ${alert.level}">
+                <div class="alert-card-header">
+                    <div class="alert-icon-wrapper">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-info">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-meta">${alert.time} · ${alert.unit}</div>
+                    </div>
+                    <div class="alert-level-badge ${alert.level}">${getAlertLevelText(alert.level)}</div>
+                </div>
+                <div class="alert-content">${alert.content}</div>
+            </div>
+        `).join('') : 
+        `<div class="report-no-alert">
+            <div class="no-alert-icon">🛡️</div>
+            <div class="no-alert-text">当前无生效的气象灾害预警，天气状况良好</div>
+        </div>`;
+    
+    const cropImpactsHTML = data.cropImpacts.map(crop => `
+        <div class="crop-impact-card ${crop.riskLevel}">
+            <div class="crop-header">
+                <div class="crop-name">${crop.crop}${crop.isMain ? ' <span class="main-crop-tag">核心经济作物</span>' : ''}</div>
+                <div class="risk-badge ${crop.riskLevel}">
+                    ${crop.riskLevel === 'high' ? '🔴' : crop.riskLevel === 'medium' ? '🟡' : '🟢'} ${crop.riskText}
+                </div>
+            </div>
+            <div class="crop-impact">${crop.impact}</div>
+        </div>
+    `).join('');
+    
+    const historyChartHTML = generateHistoryChartHTML(data.historyStats);
+    
+    return `
+        <!-- 报告头部 -->
+        <div class="report-header">
+            <div class="report-title">${location.fullName}·农业气象灾害分析报告</div>
+            <div class="report-meta">
+                <div class="report-time">${data.updateTime} 更新</div>
+                <div class="report-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${location.fullName}</span>
+                    <button class="location-switch-btn" onclick="showLocationSelector()">切换</button>
+                </div>
+            </div>
+            <div class="risk-gauge">
+                <div class="gauge-label">风险指数</div>
+                <div class="gauge-value ${data.riskScore >= 30 ? 'high' : data.riskScore >= 15 ? 'medium' : 'low'}">${data.riskLevel}</div>
+                <div class="gauge-bar">
+                    <div class="gauge-fill" style="width: ${data.riskScore}%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模块一：当前灾害预警 -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>当前灾害预警</h2>
+            </div>
+            <div class="section-content">
+                ${alertsHTML}
+            </div>
+        </div>
+        
+        <!-- 模块二：农业影响分析 -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fas fa-seedling"></i>
+                <h2>对本地作物的影响评估</h2>
+            </div>
+            <div class="section-content">
+                ${cropImpactsHTML}
+            </div>
+        </div>
+        
+        <!-- 模块三：历史灾害统计 -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fas fa-chart-bar"></i>
+                <h2>过去30天灾害回顾（${location.city}）</h2>
+            </div>
+            <div class="section-content">
+                ${historyChartHTML}
+                <div class="history-insight">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-text">
+                        过去一个月${location.city}大风天气频发（占比${data.historyStats.byType[0]?.percent || 0}%），建议种植户检查加固大棚设施，未来选种可优先考虑抗倒伏品种。
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模块四：防范指导与建议 -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fas fa-lightbulb"></i>
+                <h2>专家防范建议</h2>
+            </div>
+            <div class="section-content">
+                <ol class="advice-list">
+                    ${data.advice.map((item, index) => `<li>${item}</li>`).join('')}
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 底部导流 -->
+        <div class="report-footer">
+            <div class="footer-text">对报告内容有疑问？或想查询具体地块情况？</div>
+            <button class="consult-agent-btn" onclick="consultWeatherAgent()">
+                <i class="fas fa-robot"></i>
+                <span>咨询气象灾害智能体</span>
+            </button>
+        </div>
+    `;
+}
+
+// 生成历史统计图表HTML
+function generateHistoryChartHTML(stats) {
+    const maxCount = Math.max(...stats.trend.map(d => d.count), 1);
+    
+    const trendBars = stats.trend.map(d => `
+        <div class="trend-bar-item">
+            <div class="trend-bar" style="height: ${(d.count / maxCount) * 100}%"></div>
+            <div class="trend-label">${d.date}</div>
+            <div class="trend-value">${d.count}</div>
+        </div>
+    `).join('');
+    
+    const typePie = stats.byType.map((type, index) => `
+        <div class="pie-item">
+            <div class="pie-color" style="background: ${getTypeColor(type.type)}"></div>
+            <div class="pie-label">${type.type}</div>
+            <div class="pie-value">${type.count}次 (${type.percent}%)</div>
+        </div>
+    `).join('');
+    
+    return `
+        <div class="history-summary">
+            <div class="summary-stat">
+                <div class="stat-number">${stats.total}</div>
+                <div class="stat-label">总预警次数</div>
+            </div>
+        </div>
+        <div class="history-charts">
+            <div class="chart-container">
+                <div class="chart-title">每日预警次数趋势</div>
+                <div class="trend-chart">
+                    ${trendBars}
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">灾害类型分布</div>
+                <div class="pie-chart">
+                    ${typePie}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 获取预警级别文本
+function getAlertLevelText(level) {
+    const map = {
+        'red': '红色',
+        'orange': '橙色',
+        'yellow': '黄色',
+        'blue': '蓝色'
+    };
+    return map[level] || level;
+}
+
+// 获取灾害类型颜色
+function getTypeColor(type) {
+    const map = {
+        '大风': '#FF6B6B',
+        '暴雨': '#4ECDC4',
+        '高温': '#FFA07A',
+        '冰雹': '#95E1D3',
+        '其他': '#F38181'
+    };
+    return map[type] || '#999';
+}
+
+// 咨询气象智能体
+function consultWeatherAgent() {
+    loadWeatherDisasterAgent();
+    setTimeout(() => {
+        addWeatherMessage('user', '帮我解读刚才的报告', 'text');
+        setTimeout(() => {
+            addWeatherMessage('ai', '好的，我来为您详细解读这份气象灾害分析报告...', 'text');
+        }, 500);
+    }, 500);
+}
+
+// 分享报告
+function shareWeatherReport() {
+    showNotification('报告分享功能开发中', 'info');
+}
+
+// 显示位置选择器
+function showLocationSelector() {
+    showNotification('位置切换功能开发中', 'info');
 }
