@@ -7926,6 +7926,200 @@ body {
     font-weight: 600;
 }
 
+/* 气象灾害简报快捷卡片 */
+.weather-quick-access .weather-briefing-card {
+    background: linear-gradient(135deg, #21c08b 0%, #1a9d73 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.weather-quick-access .weather-briefing-card i {
+    color: white !important;
+    font-size: 20px !important;
+}
+
+.weather-quick-access .weather-briefing-card span {
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+/* 气象灾害预警主页 */
+.weather-disaster-home-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.weather-home-content {
+    padding: 16px;
+    padding-bottom: 20px;
+}
+
+.weather-logo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.weather-logo i {
+    color: white;
+}
+
+/* 气象灾害预警主页的快速访问区域 */
+.weather-quick-access {
+    margin-top: 24px;
+}
+
+.weather-quick-access .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.weather-quick-access .agent-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.weather-quick-access .agent-card:hover {
+    border-color: #21c08b;
+    box-shadow: 0 2px 8px rgba(33, 192, 139, 0.1);
+}
+
+.weather-quick-access .agent-card i {
+    font-size: 20px;
+    color: #21c08b;
+    margin-bottom: 8px;
+}
+
+.weather-quick-access .agent-card span {
+    font-size: 12px;
+    color: #333;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* 气象灾害预警主页 - 隐藏底部导航 */
+.weather-disaster-home-page .mobile-footer {
+    display: none !important;
+}
+
+/* 气象例子弹窗 - 底部弹出样式 */
+#weatherExamplesModal.examples-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: none;
+    align-items: flex-end;
+}
+
+#weatherExamplesModal.examples-modal.show {
+    display: flex;
+}
+
+#weatherExamplesModal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+}
+
+#weatherExamplesModal .modal-content {
+    position: relative;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 10001;
+    animation: slideUpModal 0.3s ease;
+}
+
+@keyframes slideUpModal {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+#weatherExamplesModal .modal-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#weatherExamplesModal .modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+
+#weatherExamplesModal .close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#weatherExamplesModal .modal-body {
+    padding: 16px;
+}
+
+#weatherExamplesModal .example-item {
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#weatherExamplesModal .example-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+#weatherExamplesModal .example-item:active {
+    transform: scale(0.98);
+}
+
+#weatherExamplesModal .example-title {
+    font-size: 13px;
+    color: #667eea;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+#weatherExamplesModal .example-desc {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
 .weather-disaster-page {
     background: linear-gradient(180deg, #f0f4f8 0%, #ffffff 100%);
     min-height: 100vh;

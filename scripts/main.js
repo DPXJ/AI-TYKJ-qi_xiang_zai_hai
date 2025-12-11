@@ -228,9 +228,9 @@ const pageData = {
                     <div class="recommended-agents">
                         <div class="agents-hint">快速访问</div>
                         <div class="agents-grid">
-                            <div class="agent-card weather-disaster-card" onclick="loadWeatherDisasterAgent()">
+                            <div class="agent-card weather-disaster-card" onclick="loadWeatherDisasterHome()">
                                 <i class="fas fa-cloud-sun-rain"></i>
-                                <span>气象灾害简报</span>
+                                <span>气象灾害预警</span>
                             </div>
                             <div class="agent-card" onclick="loadAgentChatPage('pest-diagnosis', '病虫害诊断')">
                                 <i class="fas fa-bug"></i>
@@ -398,6 +398,41 @@ const pageData = {
                 </div>
                 <div class="mobile-content">
                     <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="搜索智能体，如 病虫害、产量" oninput="showComingSoon('搜索')"></div>
+
+                    <!-- 分类卡片：灾害预警 -->
+                    <div class="category-section">
+                        <div class="category-title">灾害预警</div>
+                        <div class="agent-cards-grid">
+                            <div class="agent-card-detailed" data-agent-id="weather-disaster" data-category="灾害预警" data-type="platform" data-price="free" onclick="handleAgentCardClick(event, 'weather-disaster', 'free')">
+                                <div class="agent-icon"><i class="fas fa-cloud-sun-rain"></i></div>
+                                <div class="agent-info">
+                                    <div class="agent-name">气象灾害预警</div>
+                                    <div class="agent-desc">地块级气象预警，智能农事决策</div>
+                                    <div class="agent-tags">
+                                        <span class="tag platform-tag">平台官方</span>
+                                    </div>
+                                </div>
+                                <div class="agent-actions">
+                                    <div class="agent-price free">免费</div>
+                                    <button class="subscribe-btn" onclick="event.stopPropagation(); subscribeAgent('weather-disaster', 'free')">订阅</button>
+                                </div>
+                            </div>
+                            <div class="agent-card-detailed" data-agent-id="risk-analysis" data-category="灾害预警" data-type="platform" data-price="free" onclick="handleAgentCardClick(event, 'risk-analysis', 'free')">
+                                <div class="agent-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="agent-info">
+                                    <div class="agent-name">风险分析</div>
+                                    <div class="agent-desc">智能分析农业风险，提前预警</div>
+                                    <div class="agent-tags">
+                                        <span class="tag platform-tag">平台官方</span>
+                                    </div>
+                                </div>
+                                <div class="agent-actions">
+                                    <div class="agent-price free">免费</div>
+                                    <button class="subscribe-btn" onclick="event.stopPropagation(); subscribeAgent('risk-analysis', 'free')">订阅</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- 分类卡片：农事管理 -->
                     <div class="category-section">
@@ -625,41 +660,6 @@ const pageData = {
                                 <div class="agent-actions">
                                     <div class="agent-price paid">¥29/月</div>
                                     <button class="subscribe-btn" onclick="event.stopPropagation(); subscribeAgent('seed-plan', 'paid')">订阅</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 分类卡片：灾情预警 -->
-                    <div class="category-section">
-                        <div class="category-title">灾情预警</div>
-                        <div class="agent-cards-grid">
-                            <div class="agent-card-detailed" data-agent-id="risk-analysis" data-category="灾情预警" data-type="platform" data-price="free">
-                                <div class="agent-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                                <div class="agent-info">
-                                    <div class="agent-name">风险分析</div>
-                                    <div class="agent-desc">智能分析农业风险，提前预警</div>
-                                    <div class="agent-tags">
-                                        <span class="tag platform-tag">平台官方</span>
-                                    </div>
-                                </div>
-                                <div class="agent-actions">
-                                    <div class="agent-price free">免费</div>
-                                    <button class="subscribe-btn" onclick="event.stopPropagation(); subscribeAgent('risk-analysis', 'free')">订阅</button>
-                                </div>
-                            </div>
-                            <div class="agent-card-detailed" data-agent-id="meteorology" data-category="灾情预警" data-type="expert" data-expert="郑气象" data-price="free">
-                                <div class="agent-icon"><i class="fas fa-cloud-sun"></i></div>
-                                <div class="agent-info">
-                                    <div class="agent-name">气象监测</div>
-                                    <div class="agent-desc">实时天气数据监测</div>
-                                    <div class="agent-tags">
-                                        <span class="tag expert-tag">郑气象</span>
-                                    </div>
-                                </div>
-                                <div class="agent-actions">
-                                    <div class="agent-price free">免费</div>
-                                    <button class="subscribe-btn" onclick="event.stopPropagation(); subscribeAgent('meteorology', 'free')">订阅</button>
                                 </div>
                             </div>
                         </div>
@@ -4075,10 +4075,119 @@ const pageData = {
         `
     },
     
-    // 气象灾害智能体页面
+    // 气象灾害智能体主页
+    weatherDisasterHome: {
+        title: '气象灾害预警',
+        subtitle: '地块级气象预警',
+        content: `
+            <div class="mobile-page weather-disaster-home-page">
+                <div class="mobile-header weather-header">
+                    <button class="back-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">
+                        <h1>气象灾害预警</h1>
+                    </div>
+                    <button class="header-menu-btn" onclick="showWeatherMenu()">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+                <div class="mobile-content weather-home-content">
+                    <!-- 历史记录按钮 -->
+                    <div class="history-btn-container">
+                        <button class="history-btn" onclick="showComingSoon('历史记录')">
+                            <i class="fas fa-history"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- AI Logo 和欢迎文字 -->
+                    <div class="ai-welcome-section">
+                        <div class="ai-logo weather-logo">
+                            <i class="fas fa-cloud-sun-rain"></i>
+                        </div>
+                        <p class="ai-greeting">您好，我是气象灾害预警专家，为您提供地块级精准气象预警和智能农事决策建议......</p>
+                        <button class="examples-btn" onclick="showWeatherExamplesModal()">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>例子</span>
+                        </button>
+                    </div>
+
+                    <!-- 输入区域 -->
+                    <div class="ai-input-section">
+                        <div class="ai-input-container">
+                            <textarea id="weatherHomeInput" class="ai-textarea" placeholder="输入您的问题，例如：柘城县未来7天天气如何？" rows="5"></textarea>
+                            <div class="ai-input-actions">
+                                <button class="voice-btn" onclick="showComingSoon('语音录入')">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="camera-btn" onclick="takeWeatherPhoto()">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                                <button class="send-btn" onclick="startWeatherHomeChat()">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 快速访问智能体 -->
+                    <div class="recommended-agents weather-quick-access">
+                        <div class="agents-hint">快速访问</div>
+                        <div class="agents-grid">
+                            <div class="agent-card weather-briefing-card" onclick="loadWeatherDisasterAgent()">
+                                <i class="fas fa-file-alt"></i>
+                                <span>气象预警简报</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 例子弹窗 -->
+                <div id="weatherExamplesModal" class="examples-modal">
+                    <div class="modal-overlay" onclick="hideWeatherExamplesModal()"></div>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>常见问题示例</h3>
+                            <button class="close-btn" onclick="hideWeatherExamplesModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="example-item" onclick="selectWeatherExample(&quot;柘城县未来7天天气如何？&quot;)">
+                                <div class="example-title">未来趋势</div>
+                                <div class="example-desc">柘城县未来7天天气如何？</div>
+                            </div>
+                            <div class="example-item" onclick="selectWeatherExample(&quot;最近有什么预警信息？&quot;)">
+                                <div class="example-title">预警查询</div>
+                                <div class="example-desc">最近有什么预警信息？</div>
+                            </div>
+                            <div class="example-item" onclick="selectWeatherExample(&quot;适合打药吗？&quot;)">
+                                <div class="example-title">农事建议</div>
+                                <div class="example-desc">适合打药吗？</div>
+                            </div>
+                            <div class="example-item" onclick="selectWeatherExample(&quot;柘城县历史灾害统计&quot;)">
+                                <div class="example-title">历史统计</div>
+                                <div class="example-desc">柘城县历史灾害统计</div>
+                            </div>
+                            <div class="example-item" onclick="selectWeatherExample(&quot;查询郑州市的预警信息&quot;)">
+                                <div class="example-title">跨区域查询</div>
+                                <div class="example-desc">查询郑州市的预警信息</div>
+                            </div>
+                            <div class="example-item" onclick="selectWeatherExample(&quot;今天会下雨吗？&quot;)">
+                                <div class="example-title">实时天气</div>
+                                <div class="example-desc">今天会下雨吗？</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `
+    },
+    
+    // 气象灾害简报页面（原气象灾害智能体）
     weatherDisasterAgent: {
-        title: '气象灾害专家',
-        subtitle: '地块级气象预警智能体',
+        title: '气象灾害简报',
+        subtitle: '地块级气象预警',
         content: `
             <div class="mobile-page weather-disaster-page">
                 <div class="mobile-header weather-header">
@@ -4086,7 +4195,7 @@ const pageData = {
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="header-title">
-                        <h1>气象灾害专家</h1>
+                        <h1>气象灾害简报</h1>
                         <div class="header-subtitle">精准预警 · 智能决策</div>
                     </div>
                     <button class="header-menu-btn" onclick="showWeatherMenu()">
@@ -5190,6 +5299,12 @@ function handleAgentCardClick(event, agentId, priceType) {
     // 如果点击的是订阅按钮，阻止卡片点击事件
     if (event.target.closest('.subscribe-btn')) {
         event.stopPropagation();
+        return;
+    }
+    
+    // 特殊处理：气象灾害预警智能体跳转到专属主页
+    if (agentId === 'weather-disaster') {
+        loadWeatherDisasterHome();
         return;
     }
     
@@ -7320,6 +7435,64 @@ function stopInactivityTimer() {
 }
 
 // ===== 气象灾害智能体功能 =====
+// 加载气象灾害预警主页
+function loadWeatherDisasterHome() {
+    loadPage('weatherDisasterHome');
+}
+
+// 开始气象灾害预警主页对话
+function startWeatherHomeChat() {
+    const input = document.getElementById('weatherHomeInput');
+    const message = input.value.trim();
+    
+    if (!message) {
+        showNotification('请输入您的问题', 'warning');
+        return;
+    }
+    
+    // 跳转到气象灾害简报页面并发送消息
+    loadWeatherDisasterAgent();
+    setTimeout(() => {
+        addWeatherMessage('user', message, 'text');
+        handleWeatherQuery(message);
+    }, 500);
+}
+
+// 显示气象例子弹窗
+function showWeatherExamplesModal() {
+    const modal = document.getElementById('weatherExamplesModal');
+    if (modal) {
+        modal.classList.add('show');
+        // 禁止页面滚动
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// 隐藏气象例子弹窗
+function hideWeatherExamplesModal() {
+    const modal = document.getElementById('weatherExamplesModal');
+    if (modal) {
+        modal.classList.remove('show');
+        // 恢复页面滚动
+        document.body.style.overflow = '';
+    }
+}
+
+// 选择气象例子
+function selectWeatherExample(example) {
+    hideWeatherExamplesModal();
+    const input = document.getElementById('weatherHomeInput');
+    if (input) {
+        input.value = example;
+        input.focus();
+        // 自动发送消息
+        setTimeout(() => {
+            startWeatherHomeChat();
+        }, 300);
+    }
+}
+
+// 加载气象灾害简报页面
 function loadWeatherDisasterAgent() {
     loadPage('weatherDisasterAgent');
     // 页面加载后自动初始化
