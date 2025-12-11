@@ -228,6 +228,10 @@ const pageData = {
                     <div class="recommended-agents">
                         <div class="agents-hint">快速访问</div>
                         <div class="agents-grid">
+                            <div class="agent-card weather-disaster-card" onclick="loadWeatherDisasterAgent()">
+                                <i class="fas fa-cloud-sun-rain"></i>
+                                <span>气象灾害简报</span>
+                            </div>
                             <div class="agent-card" onclick="loadAgentChatPage('pest-diagnosis', '病虫害诊断')">
                                 <i class="fas fa-bug"></i>
                                 <span>病虫害诊断</span>
@@ -4069,6 +4073,53 @@ const pageData = {
                 </div>
             </div>
         `
+    },
+    
+    // 气象灾害智能体页面
+    weatherDisasterAgent: {
+        title: '气象灾害专家',
+        subtitle: '地块级气象预警智能体',
+        content: `
+            <div class="mobile-page weather-disaster-page">
+                <div class="mobile-header weather-header">
+                    <button class="back-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">
+                        <h1>气象灾害专家</h1>
+                        <div class="header-subtitle">精准预警 · 智能决策</div>
+                    </div>
+                    <button class="header-menu-btn" onclick="showWeatherMenu()">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+                <div class="weather-content" id="weatherContent">
+                    <div class="weather-messages-container" id="weatherMessagesContainer">
+                        <div class="weather-messages" id="weatherMessages">
+                            <!-- 消息将通过JavaScript动态添加 -->
+                        </div>
+                    </div>
+                    <div class="weather-input-area">
+                        <div class="weather-input-container">
+                            <button class="weather-location-btn" onclick="requestLocationPermission()" title="发送定位">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                            <button class="weather-camera-btn" onclick="takeWeatherPhoto()" title="拍摄天象">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <input type="text" 
+                                   class="weather-input" 
+                                   id="weatherInput" 
+                                   placeholder="问我任何气象问题..." 
+                                   onkeypress="if(event.key==='Enter') sendWeatherMessage()">
+                            <button class="weather-send-btn" onclick="sendWeatherMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `
     }
 };
 let currentPage = 'home';
@@ -7266,4 +7317,710 @@ function stopInactivityTimer() {
         clearInterval(inactivityCheckTimer);
         inactivityCheckTimer = null;
     }
+}
+
+// ===== 气象灾害智能体功能 =====
+function loadWeatherDisasterAgent() {
+    loadPage('weatherDisasterAgent');
+    // 页面加载后自动初始化
+    setTimeout(() => {
+        initWeatherDisasterAgent();
+    }, 100);
+}
+
+function initWeatherDisasterAgent() {
+    const messagesContainer = document.getElementById('weatherMessages');
+    if (!messagesContainer) return;
+    
+    // 清空消息
+    messagesContainer.innerHTML = '';
+    
+    // 显示加载状态
+    addWeatherMessage('ai', '', 'loading');
+    
+    // 请求GPS权限并初始化
+    requestLocationPermission(true);
+}
+
+function requestLocationPermission(autoInit = false) {
+    if (!navigator.geolocation) {
+        addWeatherMessage('ai', '您的设备不支持定位功能，请手动选择区域。', 'text');
+        showLocationSelector();
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            // 定位成功
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            if (autoInit) {
+                // 自动初始化，显示地块气象简报
+                setTimeout(() => {
+                    showWeatherBriefing(lat, lng);
+                }, 1500);
+            } else {
+                addWeatherMessage('ai', `已获取您的位置：纬度 ${lat.toFixed(4)}，经度 ${lng.toFixed(4)}。正在为您分析地块气象...`, 'text');
+                setTimeout(() => {
+                    showWeatherBriefing(lat, lng);
+                }, 1000);
+            }
+        },
+        (error) => {
+            // 定位失败
+            if (autoInit) {
+                addWeatherMessage('ai', '您好！为了提供精准的地块级服务，请授权位置信息，或手动告诉我想查询的区域。', 'text', [
+                    { text: '📍 点击授权', action: 'requestLocation' },
+                    { text: '手动选择区域', action: 'selectLocation' }
+                ]);
+            } else {
+                addWeatherMessage('ai', '无法获取位置信息，请检查定位权限设置。', 'text');
+            }
+        },
+        { timeout: 5000, enableHighAccuracy: true }
+    );
+}
+
+function showLocationSelector() {
+    // 显示区域选择器（简化版）
+    const chips = [
+        { text: '柘城县', action: 'selectLocation', data: '柘城县' },
+        { text: '郑州市', action: 'selectLocation', data: '郑州市' },
+        { text: '其他区域', action: 'selectLocation', data: '其他' }
+    ];
+    addWeatherMessage('ai', '请选择您要查询的区域：', 'text', chips);
+}
+
+function showWeatherBriefing(lat, lng) {
+    // 移除加载消息
+    const loadingMsg = document.querySelector('.weather-message.loading');
+    if (loadingMsg) loadingMsg.remove();
+    
+    // 显示地块气象轮播卡片
+    const briefingData = {
+        location: '柘城县',
+        baseName: '腾跃示范基地',
+        crop: '辣椒',
+        growthStage: '坐果期',
+        trafficLight: 'suitable', // suitable, warning, forbidden
+        currentWeather: {
+            temp: '28°C',
+            humidity: '65%',
+            wind: '3级',
+            condition: '多云'
+        },
+        alerts: [
+            { type: 'rain', level: 'yellow', text: '暴雨黄色预警生效中' }
+        ],
+        relatedBases: [
+            { name: '柘城县·示范田1号', crop: '玉米', stage: '抽穗期' },
+            { name: '柘城县·示范田2号', crop: '小麦', stage: '灌浆期' }
+        ]
+    };
+    
+    addWeatherMessage('ai', '', 'briefing', null, briefingData);
+    
+    // 添加快捷追问气泡
+    setTimeout(() => {
+        const quickChips = [
+            { text: '未来7天趋势？', action: 'quickQuestion', data: '未来7天趋势？' },
+            { text: '最近有什么预警？', action: 'quickQuestion', data: '最近有什么预警？' },
+            { text: '适合打药吗？', action: 'quickQuestion', data: '适合打药吗？' },
+            { text: '柘城县历史灾害统计', action: 'quickQuestion', data: '柘城县历史灾害统计' }
+        ];
+        addWeatherMessage('ai', '您还可以问我：', 'text', quickChips);
+    }, 500);
+}
+
+function sendWeatherMessage() {
+    const input = document.getElementById('weatherInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // 添加用户消息
+    addWeatherMessage('user', message, 'text');
+    input.value = '';
+    
+    // 处理用户意图并生成回复
+    setTimeout(() => {
+        handleWeatherQuery(message);
+    }, 800);
+}
+
+function handleWeatherQuery(query) {
+    const lowerQuery = query.toLowerCase();
+    
+    // 意图识别
+    if (lowerQuery.includes('预警') || lowerQuery.includes('大风') || lowerQuery.includes('下雨') || lowerQuery.includes('暴雨')) {
+        // 查询预警
+        showWeatherAlert(query);
+    } else if (lowerQuery.includes('历史') || lowerQuery.includes('统计') || lowerQuery.includes('记录') || lowerQuery.includes('次数')) {
+        // 查询历史统计
+        showWeatherStatistics(query);
+    } else if (lowerQuery.includes('趋势') || lowerQuery.includes('未来') || lowerQuery.includes('7天')) {
+        // 查询未来趋势
+        showWeatherTrend(query);
+    } else if (lowerQuery.includes('打药') || lowerQuery.includes('农事') || lowerQuery.includes('作业')) {
+        // 农事建议
+        showFarmingAdvice(query);
+    } else if (lowerQuery.includes('郑州') || lowerQuery.includes('其他区域')) {
+        // 跨区域查询
+        showCrossRegionQuery(query);
+    } else {
+        // 通用回复
+        addWeatherMessage('ai', `关于"${query}"，我正在为您查询相关信息...`, 'text');
+    }
+}
+
+function showWeatherAlert(query) {
+    const alertData = {
+        location: '柘城县',
+        alerts: [
+            {
+                type: 'wind',
+                level: 'blue',
+                title: '大风蓝色预警',
+                time: '今日 10:00',
+                content: '柘城县气象台今日10:00发布大风蓝色预警，预计下午风力可达7级，请注意防范。',
+                defense: [
+                    '加固大棚设施',
+                    '避免高空作业',
+                    '注意用火安全'
+                ]
+            }
+        ]
+    };
+    
+    addWeatherMessage('ai', '', 'alert', null, alertData);
+}
+
+function showWeatherStatistics(query) {
+    const statsData = {
+        location: '柘城县',
+        period: '过去30天',
+        summary: '过去30天，您所在的柘城县共发布预警 5 次，主要集中在 大风 天气。',
+        charts: {
+            pie: {
+                title: '灾害类型占比',
+                data: [
+                    { name: '大风', value: 40, color: '#FF6B6B' },
+                    { name: '暴雨', value: 30, color: '#4ECDC4' },
+                    { name: '冰雹', value: 20, color: '#95E1D3' },
+                    { name: '其他', value: 10, color: '#F38181' }
+                ]
+            },
+            bar: {
+                title: '每月预警次数趋势',
+                data: [
+                    { month: '1月', count: 2 },
+                    { month: '2月', count: 1 },
+                    { month: '3月', count: 2 }
+                ]
+            }
+        },
+        historyList: [
+            { date: '2024-03-15', type: '大风', level: '蓝色', content: '预计下午风力可达7级' },
+            { date: '2024-03-10', type: '暴雨', level: '黄色', content: '预计未来6小时降雨量达50mm' },
+            { date: '2024-03-05', type: '大风', level: '蓝色', content: '预计下午风力可达6级' }
+        ]
+    };
+    
+    addWeatherMessage('ai', '', 'statistics', null, statsData);
+}
+
+function showWeatherTrend(query) {
+    const trendData = {
+        location: '柘城县',
+        days: 7,
+        forecast: [
+            { date: '今天', temp: '28°C', condition: '多云', wind: '3级' },
+            { date: '明天', temp: '26°C', condition: '小雨', wind: '4级' },
+            { date: '后天', temp: '24°C', condition: '中雨', wind: '5级' },
+            { date: '第4天', temp: '25°C', condition: '阴', wind: '3级' },
+            { date: '第5天', temp: '27°C', condition: '晴', wind: '2级' },
+            { date: '第6天', temp: '29°C', condition: '晴', wind: '2级' },
+            { date: '第7天', temp: '30°C', condition: '多云', wind: '3级' }
+        ],
+        advice: '未来7天，柘城县以多云和小雨天气为主，建议关注第2-3天的降雨天气，合理安排农事活动。'
+    };
+    
+    addWeatherMessage('ai', '', 'trend', null, trendData);
+}
+
+function showFarmingAdvice(query) {
+    const adviceData = {
+        location: '柘城县',
+        crop: '辣椒',
+        stage: '坐果期',
+        currentWeather: {
+            temp: '28°C',
+            humidity: '65%',
+            wind: '3级'
+        },
+        suitable: true,
+        advice: '当前天气条件适宜进行打药作业。温度适中，风力较小，建议在上午9-11点或下午4-6点进行，避开高温时段。',
+        windows: [
+            { time: '今天 09:00-11:00', suitable: true, reason: '温度适宜，无风' },
+            { time: '今天 16:00-18:00', suitable: true, reason: '温度下降，风力小' },
+            { time: '明天 09:00-11:00', suitable: false, reason: '预计有雨' }
+        ]
+    };
+    
+    addWeatherMessage('ai', '', 'farming-advice', null, adviceData);
+}
+
+function showCrossRegionQuery(query) {
+    let location = '柘城县';
+    if (query.includes('郑州')) location = '郑州市';
+    
+    addWeatherMessage('ai', `正在为您查询${location}的预警信息...`, 'text');
+    
+    setTimeout(() => {
+        const crossRegionData = {
+            location: location,
+            alerts: [
+                {
+                    type: 'rain',
+                    level: 'orange',
+                    title: '暴雨橙色预警',
+                    time: '今日 14:00',
+                    content: `${location}气象台今日14:00发布暴雨橙色预警，预计未来6小时降雨量达100mm以上，请注意防范。`
+                }
+            ],
+            currentWeather: {
+                temp: location === '郑州市' ? '22°C' : '28°C',
+                condition: location === '郑州市' ? '暴雨' : '多云'
+            }
+        };
+        
+        addWeatherMessage('ai', '', 'cross-region', null, crossRegionData);
+    }, 1000);
+}
+
+function addWeatherMessage(type, content, messageType = 'text', chips = null, data = null) {
+    const messagesContainer = document.getElementById('weatherMessages');
+    if (!messagesContainer) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `weather-message ${type}-message ${messageType}`;
+    
+    if (type === 'user') {
+        messageDiv.innerHTML = `
+            <div class="weather-message-content user-content">
+                <div class="weather-message-bubble">${content}</div>
+            </div>
+            <div class="weather-message-avatar user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        `;
+    } else {
+        if (messageType === 'loading') {
+            messageDiv.innerHTML = `
+                <div class="weather-message-avatar ai-avatar">
+                    <i class="fas fa-cloud-sun-rain"></i>
+                </div>
+                <div class="weather-message-content ai-content">
+                    <div class="weather-loading">
+                        <div class="loading-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <div class="loading-text">正在定位并分析地块气象...</div>
+                    </div>
+                </div>
+            `;
+        } else if (messageType === 'briefing' && data) {
+            messageDiv.innerHTML = generateBriefingCard(data);
+        } else if (messageType === 'alert' && data) {
+            messageDiv.innerHTML = generateAlertCard(data);
+        } else if (messageType === 'statistics' && data) {
+            messageDiv.innerHTML = generateStatisticsCard(data);
+        } else if (messageType === 'trend' && data) {
+            messageDiv.innerHTML = generateTrendCard(data);
+        } else if (messageType === 'farming-advice' && data) {
+            messageDiv.innerHTML = generateFarmingAdviceCard(data);
+        } else if (messageType === 'cross-region' && data) {
+            messageDiv.innerHTML = generateCrossRegionCard(data);
+        } else {
+            let chipsHtml = '';
+            if (chips && chips.length > 0) {
+                chipsHtml = '<div class="weather-chips">' + 
+                    chips.map(chip => 
+                        `<div class="weather-chip" onclick="handleWeatherChip('${chip.action}', '${chip.data || ''}')">${chip.text}</div>`
+                    ).join('') + 
+                    '</div>';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="weather-message-avatar ai-avatar">
+                    <i class="fas fa-cloud-sun-rain"></i>
+                </div>
+                <div class="weather-message-content ai-content">
+                    <div class="weather-message-bubble">${content}</div>
+                    ${chipsHtml}
+                    <div class="weather-message-actions">
+                        <button class="action-btn" onclick="copyWeatherMessage(this)" title="复制">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="action-btn" onclick="likeWeatherMessage(this)" title="赞">
+                            <i class="far fa-thumbs-up"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    messagesContainer.appendChild(messageDiv);
+    
+    // 滚动到底部
+    const container = document.getElementById('weatherMessagesContainer');
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 100);
+}
+
+function generateBriefingCard(data) {
+    const trafficLightIcon = data.trafficLight === 'suitable' ? '🟢' : 
+                            data.trafficLight === 'warning' ? '🟡' : '🔴';
+    const trafficLightText = data.trafficLight === 'suitable' ? '适宜' : 
+                            data.trafficLight === 'warning' ? '注意' : '禁止';
+    const trafficLightClass = data.trafficLight;
+    
+    const alertHtml = data.alerts.map(alert => 
+        `<div class="briefing-alert ${alert.level}">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>${alert.text}</span>
+        </div>`
+    ).join('');
+    
+    const relatedBasesHtml = data.relatedBases && data.relatedBases.length > 0 ? 
+        `<div class="related-bases">
+            <div class="related-bases-title">关联地块</div>
+            <div class="related-bases-list">
+                ${data.relatedBases.map(base => 
+                    `<div class="related-base-item">
+                        <div class="base-name">${base.name}</div>
+                        <div class="base-info">${base.crop} · ${base.stage}</div>
+                    </div>`
+                ).join('')}
+            </div>
+        </div>` : '';
+    
+    return `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-briefing-card">
+                <div class="briefing-header">
+                    <div class="traffic-light ${trafficLightClass}">
+                        <div class="traffic-light-icon">${trafficLightIcon}</div>
+                        <div class="traffic-light-text">${trafficLightText}</div>
+                    </div>
+                    <div class="briefing-title">
+                        <div class="briefing-location">${data.location} · ${data.baseName}</div>
+                        <div class="briefing-crop">${data.crop} · ${data.growthStage}</div>
+                    </div>
+                </div>
+                <div class="briefing-weather">
+                    <div class="weather-item">
+                        <i class="fas fa-thermometer-half"></i>
+                        <span>${data.currentWeather.temp}</span>
+                    </div>
+                    <div class="weather-item">
+                        <i class="fas fa-tint"></i>
+                        <span>${data.currentWeather.humidity}</span>
+                    </div>
+                    <div class="weather-item">
+                        <i class="fas fa-wind"></i>
+                        <span>${data.currentWeather.wind}</span>
+                    </div>
+                    <div class="weather-item">
+                        <i class="fas fa-cloud"></i>
+                        <span>${data.currentWeather.condition}</span>
+                    </div>
+                </div>
+                ${alertHtml ? `<div class="briefing-alerts">${alertHtml}</div>` : ''}
+                ${relatedBasesHtml}
+                <button class="briefing-detail-btn" onclick="showWeatherDetail()">
+                    <i class="fas fa-chevron-right"></i>
+                    <span>查看气象决策详情</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function generateAlertCard(data) {
+    const alertHtml = data.alerts.map(alert => {
+        const levelClass = alert.level;
+        const levelText = alert.level === 'red' ? '红色' : 
+                         alert.level === 'orange' ? '橙色' : 
+                         alert.level === 'yellow' ? '黄色' : '蓝色';
+        
+        const defenseHtml = alert.defense ? 
+            `<div class="alert-defense">
+                <div class="defense-title">防御指南：</div>
+                <ul class="defense-list">
+                    ${alert.defense.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>` : '';
+        
+        return `
+            <div class="weather-alert-card ${levelClass}">
+                <div class="alert-header">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-info">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-time">${alert.time}</div>
+                    </div>
+                    <div class="alert-level">${levelText}</div>
+                </div>
+                <div class="alert-content">${alert.content}</div>
+                ${defenseHtml}
+            </div>
+        `;
+    }).join('');
+    
+    return `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-alerts-container">
+                ${alertHtml}
+            </div>
+        </div>
+    `;
+}
+
+function generateStatisticsCard(data) {
+    // 生成饼图HTML（使用CSS模拟）
+    const pieHtml = `
+        <div class="statistics-pie-chart">
+            <div class="pie-title">${data.charts.pie.title}</div>
+            <div class="pie-container">
+                ${data.charts.pie.data.map((item, index) => {
+                    const angle = (item.value / 100) * 360;
+                    return `
+                        <div class="pie-segment" style="--angle: ${angle}deg; --color: ${item.color}; --index: ${index}">
+                            <div class="pie-label">${item.name} ${item.value}%</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    // 生成柱状图HTML
+    const barHtml = `
+        <div class="statistics-bar-chart">
+            <div class="bar-title">${data.charts.bar.title}</div>
+            <div class="bar-container">
+                ${data.charts.bar.data.map(item => {
+                    const maxCount = Math.max(...data.charts.bar.data.map(d => d.count));
+                    const height = (item.count / maxCount) * 100;
+                    return `
+                        <div class="bar-item">
+                            <div class="bar-value">${item.count}</div>
+                            <div class="bar-column" style="height: ${height}%"></div>
+                            <div class="bar-label">${item.month}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    const historyListHtml = `
+        <div class="history-list">
+            ${data.historyList.map(item => `
+                <div class="history-item">
+                    <div class="history-date">${item.date}</div>
+                    <div class="history-info">
+                        <span class="history-type">${item.type}</span>
+                        <span class="history-level ${item.level}">${item.level}</span>
+                    </div>
+                    <div class="history-content">${item.content}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    return `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-statistics-card">
+                <div class="statistics-summary">${data.summary}</div>
+                ${pieHtml}
+                ${barHtml}
+                <button class="statistics-detail-btn" onclick="showHistoryList()">
+                    <i class="fas fa-list"></i>
+                    <span>查看详细列表</span>
+                </button>
+                <div class="history-list-modal" id="historyListModal" style="display: none;">
+                    <div class="modal-overlay" onclick="closeHistoryList()"></div>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>历史预警列表</h3>
+                            <button class="close-btn" onclick="closeHistoryList()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            ${historyListHtml}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function generateTrendCard(data) {
+    const forecastHtml = data.forecast.map(day => `
+        <div class="trend-day">
+            <div class="day-date">${day.date}</div>
+            <div class="day-weather">
+                <i class="fas fa-${day.condition === '晴' ? 'sun' : day.condition === '多云' ? 'cloud' : 'cloud-rain'}"></i>
+            </div>
+            <div class="day-temp">${day.temp}</div>
+            <div class="day-wind">${day.wind}</div>
+        </div>
+    `).join('');
+    
+    return `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-trend-card">
+                <div class="trend-title">${data.location}未来${data.days}天天气预报</div>
+                <div class="trend-forecast">${forecastHtml}</div>
+                <div class="trend-advice">${data.advice}</div>
+            </div>
+        </div>
+    `;
+}
+
+function generateFarmingAdviceCard(data) {
+    const windowsHtml = data.windows.map(window => `
+        <div class="advice-window ${window.suitable ? 'suitable' : 'unsuitable'}">
+            <div class="window-time">${window.time}</div>
+            <div class="window-status">
+                <i class="fas fa-${window.suitable ? 'check-circle' : 'times-circle'}"></i>
+                <span>${window.suitable ? '适宜' : '不适宜'}</span>
+            </div>
+            <div class="window-reason">${window.reason}</div>
+        </div>
+    `).join('');
+    
+    return `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-farming-advice-card">
+                <div class="advice-header">
+                    <div class="advice-crop">${data.crop} · ${data.stage}</div>
+                    <div class="advice-location">${data.location}</div>
+                </div>
+                <div class="advice-status ${data.suitable ? 'suitable' : 'unsuitable'}">
+                    <i class="fas fa-${data.suitable ? 'check-circle' : 'times-circle'}"></i>
+                    <span>${data.suitable ? '当前天气条件适宜进行打药作业' : '当前天气条件不适宜进行打药作业'}</span>
+                </div>
+                <div class="advice-content">${data.advice}</div>
+                <div class="advice-windows">
+                    <div class="windows-title">24小时作业窗口</div>
+                    ${windowsHtml}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function generateCrossRegionCard(data) {
+    const alertHtml = data.alerts.map(alert => {
+        const levelClass = alert.level;
+        return `
+            <div class="cross-region-alert ${levelClass}">
+                <div class="alert-title">${alert.title}</div>
+                <div class="alert-time">${alert.time}</div>
+                <div class="alert-content">${alert.content}</div>
+            </div>
+        `;
+    }).join('');
+    
+    return `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-cross-region-card">
+                <div class="cross-region-location">${data.location}</div>
+                <div class="cross-region-weather">
+                    <div class="weather-temp">${data.currentWeather.temp}</div>
+                    <div class="weather-condition">${data.currentWeather.condition}</div>
+                </div>
+                ${alertHtml}
+            </div>
+        </div>
+    `;
+}
+
+function handleWeatherChip(action, data) {
+    if (action === 'requestLocation') {
+        requestLocationPermission();
+    } else if (action === 'selectLocation') {
+        showLocationSelector();
+    } else if (action === 'quickQuestion') {
+        document.getElementById('weatherInput').value = data;
+        sendWeatherMessage();
+    }
+}
+
+function showWeatherDetail() {
+    showNotification('气象决策详情页开发中...', 'info');
+}
+
+function showHistoryList() {
+    const modal = document.getElementById('historyListModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function closeHistoryList() {
+    const modal = document.getElementById('historyListModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function takeWeatherPhoto() {
+    showNotification('拍摄天象功能开发中...', 'info');
+}
+
+function showWeatherMenu() {
+    showNotification('菜单功能开发中...', 'info');
+}
+
+function copyWeatherMessage(btn) {
+    const bubble = btn.closest('.weather-message-content').querySelector('.weather-message-bubble');
+    if (bubble) {
+        navigator.clipboard.writeText(bubble.textContent);
+        showNotification('已复制到剪贴板', 'success');
+    }
+}
+
+function likeWeatherMessage(btn) {
+    btn.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+    btn.style.color = '#21c08b';
+    showNotification('感谢您的反馈', 'success');
 }
