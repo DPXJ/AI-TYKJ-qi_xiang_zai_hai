@@ -4084,9 +4084,6 @@ const pageData = {
                     <div class="header-title">
                         <h1>气象灾害预警</h1>
                     </div>
-                    <button class="header-menu-btn" onclick="showWeatherMenu()">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
                 </div>
                 <div class="mobile-content weather-home-content">
                     <!-- 历史记录按钮 -->
@@ -4144,7 +4141,7 @@ const pageData = {
     
     // 气象灾害简报页面（原气象灾害智能体）
     weatherDisasterAgent: {
-        title: '气象灾害简报',
+        title: '地块气象灾害预报',
         subtitle: '地块级气象预警',
         content: `
             <div class="mobile-page weather-disaster-page">
@@ -4153,12 +4150,8 @@ const pageData = {
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="header-title">
-                        <h1>气象灾害简报</h1>
-                        <div class="header-subtitle">精准预警 · 智能决策</div>
+                        <h1>地块气象灾害预报</h1>
                     </div>
-                    <button class="header-menu-btn" onclick="showWeatherMenu()">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
                 </div>
                 <div class="weather-content" id="weatherContent">
                     <div class="weather-messages-container" id="weatherMessagesContainer">
@@ -4184,6 +4177,30 @@ const pageData = {
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        `
+    },
+    
+    // 气象详情页面
+    weatherDetail: {
+        title: '地块气象灾害预报',
+        subtitle: '',
+        content: `
+            <div class="mobile-page weather-detail-page">
+                <div class="mobile-header">
+                    <button class="back-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-title">
+                        <h1>地块气象灾害预报</h1>
+                    </div>
+                    <button class="share-btn" onclick="showShareOptions()">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+                <div class="weather-detail-content" id="weatherDetailContent">
+                    <!-- 内容将通过JavaScript动态生成 -->
                 </div>
             </div>
         `
@@ -7569,7 +7586,7 @@ function initWeatherDisasterAgent() {
 
 function requestLocationPermission(autoInit = false) {
     if (!navigator.geolocation) {
-        addWeatherMessage('ai', '您的设备不支持定位功能，请手动选择区域。', 'text');
+        addWeatherMessage('ai', '您的设备不支持定位功能，请手动选择地块。', 'text');
         showLocationSelector();
         return;
     }
@@ -7597,7 +7614,7 @@ function requestLocationPermission(autoInit = false) {
             if (autoInit) {
                 addWeatherMessage('ai', '您好！为了提供精准的地块级服务，请授权位置信息，或手动告诉我想查询的区域。', 'text', [
                     { text: '📍 点击授权', action: 'requestLocation' },
-                    { text: '手动选择区域', action: 'selectLocation' }
+                    { text: '手动选择地块', action: 'selectLocation' }
                 ]);
             } else {
                 addWeatherMessage('ai', '无法获取位置信息，请检查定位权限设置。', 'text');
@@ -7608,26 +7625,26 @@ function requestLocationPermission(autoInit = false) {
 }
 
 function showLocationSelector() {
-    // 显示区域选择器（简化版）
+    // 显示地块选择器
     const chips = [
-        { text: '柘城县', action: 'selectLocation', data: '柘城县' },
-        { text: '郑州市', action: 'selectLocation', data: '郑州市' },
-        { text: '其他区域', action: 'selectLocation', data: '其他' }
+        { text: '柘城1号地块', action: 'selectPlot', data: 'plot1' },
+        { text: '柘城2号地块', action: 'selectPlot', data: 'plot2' },
+        { text: '柘城3号地块', action: 'selectPlot', data: 'plot3' }
     ];
-    addWeatherMessage('ai', '请选择您要查询的区域：', 'text', chips);
+    addWeatherMessage('ai', '以下是您可以查询的地块，请选择：', 'text', chips);
 }
 
-function showWeatherBriefing(lat, lng) {
+function showWeatherBriefing(lat, lng, plotInfo = null) {
     // 移除加载消息
     const loadingMsg = document.querySelector('.weather-message.loading');
     if (loadingMsg) loadingMsg.remove();
     
-    // 显示地块气象轮播卡片
+    // 显示地块气象轮播卡片，如果提供了地块信息则使用，否则使用默认值
     const briefingData = {
-        location: '柘城县',
-        baseName: '腾跃示范基地',
-        crop: '辣椒',
-        growthStage: '坐果期',
+        location: plotInfo?.location || '柘城县',
+        baseName: plotInfo?.baseName || '腾跃示范基地',
+        crop: plotInfo?.crop || '辣椒',
+        growthStage: plotInfo?.growthStage || '坐果期',
         trafficLight: 'suitable', // suitable, warning, forbidden
         currentWeather: {
             temp: '28°C',
@@ -7969,9 +7986,9 @@ function generateBriefingCard(data) {
                 </div>
                 ${alertHtml ? `<div class="briefing-alerts">${alertHtml}</div>` : ''}
                 ${relatedBasesHtml}
-                <button class="briefing-detail-btn" onclick="showWeatherDetail()">
+                <button class="briefing-detail-btn" onclick='showWeatherDetailPage(${JSON.stringify(data)})'>
                     <i class="fas fa-chevron-right"></i>
-                    <span>查看气象决策详情</span>
+                    <span>地块气象灾害预报</span>
                 </button>
             </div>
         </div>
@@ -8204,14 +8221,167 @@ function handleWeatherChip(action, data) {
         requestLocationPermission();
     } else if (action === 'selectLocation') {
         showLocationSelector();
+    } else if (action === 'selectPlot') {
+        // 用户选择了具体地块，显示对应的气象简报
+        handlePlotSelection(data);
     } else if (action === 'quickQuestion') {
         document.getElementById('weatherInput').value = data;
         sendWeatherMessage();
     }
 }
 
+function handlePlotSelection(plotId) {
+    // 根据地块ID显示对应的气象简报
+    const plotData = {
+        'plot1': {
+            location: '柘城县',
+            baseName: '示范田1号',
+            crop: '玉米',
+            growthStage: '抽穗期',
+            lat: 34.0865,
+            lng: 115.6699
+        },
+        'plot2': {
+            location: '柘城县',
+            baseName: '示范田2号',
+            crop: '小麦',
+            growthStage: '灌浆期',
+            lat: 34.0900,
+            lng: 115.6750
+        },
+        'plot3': {
+            location: '柘城县',
+            baseName: '示范田3号',
+            crop: '辣椒',
+            growthStage: '坐果期',
+            lat: 34.0850,
+            lng: 115.6650
+        }
+    };
+    
+    const plot = plotData[plotId];
+    if (plot) {
+        addWeatherMessage('user', `查看${plot.baseName}气象预报`, 'text');
+        setTimeout(() => {
+            addWeatherMessage('ai', '正在为您获取地块气象信息...', 'text');
+            setTimeout(() => {
+                showWeatherBriefing(plot.lat, plot.lng, plot);
+            }, 1000);
+        }, 500);
+    }
+}
+
 function showWeatherDetail() {
     showNotification('气象决策详情页开发中...', 'info');
+}
+
+// 全局变量存储当前气象详情数据
+let currentWeatherDetailData = null;
+
+function showWeatherDetailPage(data) {
+    // 存储当前数据
+    currentWeatherDetailData = data;
+    
+    // 加载气象详情页面
+    loadPage('weatherDetail');
+    
+    // 页面加载后填充内容
+    setTimeout(() => {
+        renderWeatherDetailContent(data);
+    }, 100);
+}
+
+function renderWeatherDetailContent(data) {
+    const container = document.getElementById('weatherDetailContent');
+    if (!container) return;
+    
+    const trafficLightIcon = data.trafficLight === 'suitable' ? '🟢' : 
+                            data.trafficLight === 'warning' ? '🟡' : '🔴';
+    const trafficLightText = data.trafficLight === 'suitable' ? '适宜农事作业' : 
+                            data.trafficLight === 'warning' ? '谨慎作业' : '禁止作业';
+    const trafficLightClass = data.trafficLight;
+    
+    const alertsHtml = data.alerts && data.alerts.length > 0 ? 
+        `<div class="detail-section">
+            <div class="section-title"><i class="fas fa-exclamation-triangle"></i> 预警信息</div>
+            ${data.alerts.map(alert => 
+                `<div class="alert-card ${alert.level}">
+                    <div class="alert-badge">${alert.level === 'yellow' ? '黄色预警' : '蓝色预警'}</div>
+                    <div class="alert-text">${alert.text}</div>
+                </div>`
+            ).join('')}
+        </div>` : '';
+    
+    const relatedBasesHtml = data.relatedBases && data.relatedBases.length > 0 ? 
+        `<div class="detail-section">
+            <div class="section-title"><i class="fas fa-map-marker-alt"></i> 关联地块</div>
+            <div class="related-plots-grid">
+                ${data.relatedBases.map(base => 
+                    `<div class="plot-card">
+                        <div class="plot-name">${base.name}</div>
+                        <div class="plot-info">${base.crop} · ${base.stage}</div>
+                    </div>`
+                ).join('')}
+            </div>
+        </div>` : '';
+    
+    container.innerHTML = `
+        <div class="detail-header-card">
+            <div class="detail-traffic-light ${trafficLightClass}">
+                <div class="traffic-icon">${trafficLightIcon}</div>
+                <div class="traffic-text">${trafficLightText}</div>
+            </div>
+            <div class="detail-location">
+                <h2>${data.location} · ${data.baseName}</h2>
+                <p>${data.crop} · ${data.growthStage}</p>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <div class="section-title"><i class="fas fa-cloud-sun"></i> 当前天气</div>
+            <div class="weather-grid">
+                <div class="weather-grid-item">
+                    <i class="fas fa-thermometer-half"></i>
+                    <div class="weather-label">温度</div>
+                    <div class="weather-value">${data.currentWeather.temp}</div>
+                </div>
+                <div class="weather-grid-item">
+                    <i class="fas fa-tint"></i>
+                    <div class="weather-label">湿度</div>
+                    <div class="weather-value">${data.currentWeather.humidity}</div>
+                </div>
+                <div class="weather-grid-item">
+                    <i class="fas fa-wind"></i>
+                    <div class="weather-label">风力</div>
+                    <div class="weather-value">${data.currentWeather.wind}</div>
+                </div>
+                <div class="weather-grid-item">
+                    <i class="fas fa-cloud"></i>
+                    <div class="weather-label">天气</div>
+                    <div class="weather-value">${data.currentWeather.condition}</div>
+                </div>
+            </div>
+        </div>
+        
+        ${alertsHtml}
+        ${relatedBasesHtml}
+        
+        <div class="detail-section">
+            <div class="section-title"><i class="fas fa-lightbulb"></i> 农事建议</div>
+            <div class="advice-card">
+                <p>根据当前气象条件分析，${data.baseName}的${data.crop}正处于${data.growthStage}，建议：</p>
+                <ul class="advice-list">
+                    <li>密切关注天气变化，做好防范措施</li>
+                    <li>适时进行田间管理，确保作物健康生长</li>
+                    <li>注意病虫害防治，保障作物产量</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="detail-footer">
+            <p class="update-time">更新时间：${new Date().toLocaleString('zh-CN')}</p>
+        </div>
+    `;
 }
 
 function showHistoryList() {
@@ -8234,6 +8404,265 @@ function takeWeatherPhoto() {
 
 function showWeatherMenu() {
     showNotification('菜单功能开发中...', 'info');
+}
+
+// 显示分享选项
+function showShareOptions() {
+    const phoneContent = document.getElementById('phoneContent');
+    if (!phoneContent) return;
+    
+    // 创建分享弹窗
+    const shareModal = document.createElement('div');
+    shareModal.className = 'share-modal';
+    shareModal.id = 'shareModal';
+    shareModal.innerHTML = `
+        <div class="share-overlay" onclick="closeShareModal()"></div>
+        <div class="share-content">
+            <div class="share-header">
+                <h3>分享到</h3>
+                <button class="share-close" onclick="closeShareModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="share-options">
+                <div class="share-option" onclick="shareToWeChat()">
+                    <div class="share-icon wechat">
+                        <i class="fab fa-weixin"></i>
+                    </div>
+                    <div class="share-label">微信</div>
+                </div>
+                <div class="share-option" onclick="shareToMoments()">
+                    <div class="share-icon moments">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="share-label">朋友圈</div>
+                </div>
+                <div class="share-option" onclick="shareAsImage()">
+                    <div class="share-icon image">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="share-label">图片</div>
+                </div>
+                <div class="share-option" onclick="copyShareLink()">
+                    <div class="share-icon link">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="share-label">复制链接</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    phoneContent.appendChild(shareModal);
+    
+    // 延迟显示，触发动画
+    setTimeout(() => {
+        shareModal.classList.add('active');
+    }, 10);
+}
+
+// 关闭分享弹窗
+function closeShareModal() {
+    const modal = document.getElementById('shareModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// 分享到微信
+function shareToWeChat() {
+    closeShareModal();
+    showNotification('微信分享功能开发中，实际应用中将调用微信SDK', 'info');
+}
+
+// 分享到朋友圈
+function shareToMoments() {
+    closeShareModal();
+    showNotification('朋友圈分享功能开发中，实际应用中将调用微信SDK', 'info');
+}
+
+// 分享为图片
+function shareAsImage() {
+    closeShareModal();
+    
+    if (!currentWeatherDetailData) {
+        showNotification('无法获取气象数据', 'error');
+        return;
+    }
+    
+    // 显示图片预览弹窗
+    showImagePreviewModal(currentWeatherDetailData);
+}
+
+// 复制分享链接
+function copyShareLink() {
+    const link = window.location.href;
+    
+    // 使用Clipboard API复制链接
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+            closeShareModal();
+            showNotification('链接已复制到剪贴板', 'success');
+        }).catch(() => {
+            // 降级方案
+            fallbackCopyLink(link);
+        });
+    } else {
+        // 降级方案
+        fallbackCopyLink(link);
+    }
+}
+
+// 降级复制方案
+function fallbackCopyLink(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+        document.execCommand('copy');
+        closeShareModal();
+        showNotification('链接已复制到剪贴板', 'success');
+    } catch (err) {
+        showNotification('复制失败，请手动复制', 'error');
+    }
+    
+    document.body.removeChild(textarea);
+}
+
+// 显示图片预览弹窗
+function showImagePreviewModal(data) {
+    const phoneContent = document.getElementById('phoneContent');
+    if (!phoneContent) return;
+    
+    const trafficLightIcon = data.trafficLight === 'suitable' ? '🟢' : 
+                            data.trafficLight === 'warning' ? '🟡' : '🔴';
+    const trafficLightText = data.trafficLight === 'suitable' ? '适宜' : 
+                            data.trafficLight === 'warning' ? '注意' : '禁止';
+    
+    const alertsText = data.alerts && data.alerts.length > 0 ? 
+        data.alerts.map(alert => alert.text).join('；') : '暂无预警';
+    
+    // 创建图片预览弹窗
+    const imageModal = document.createElement('div');
+    imageModal.className = 'image-preview-modal';
+    imageModal.id = 'imagePreviewModal';
+    imageModal.innerHTML = `
+        <div class="image-preview-overlay" onclick="closeImagePreviewModal()"></div>
+        <div class="image-preview-content">
+            <div class="image-preview-header">
+                <h3>分享图片预览</h3>
+                <button class="preview-close" onclick="closeImagePreviewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="image-preview-body">
+                <div class="share-image-card" id="shareImageCard">
+                    <div class="share-card-header">
+                        <div class="share-logo">
+                            <i class="fas fa-cloud-sun-rain"></i>
+                        </div>
+                        <div class="share-title">
+                            <h2>地块气象灾害预报</h2>
+                            <p>精准预警 · 智能决策</p>
+                        </div>
+                    </div>
+                    
+                    <div class="share-card-content">
+                        <div class="share-location-info">
+                            <div class="share-traffic ${data.trafficLight}">
+                                <span class="traffic-icon">${trafficLightIcon}</span>
+                                <span class="traffic-text">${trafficLightText}</span>
+                            </div>
+                            <div class="share-location-text">
+                                <h3>${data.location} · ${data.baseName}</h3>
+                                <p>${data.crop} · ${data.growthStage}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="share-weather-info">
+                            <div class="share-weather-item">
+                                <i class="fas fa-thermometer-half"></i>
+                                <span>${data.currentWeather.temp}</span>
+                            </div>
+                            <div class="share-weather-item">
+                                <i class="fas fa-tint"></i>
+                                <span>${data.currentWeather.humidity}</span>
+                            </div>
+                            <div class="share-weather-item">
+                                <i class="fas fa-wind"></i>
+                                <span>${data.currentWeather.wind}</span>
+                            </div>
+                            <div class="share-weather-item">
+                                <i class="fas fa-cloud"></i>
+                                <span>${data.currentWeather.condition}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="share-alert-info">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>${alertsText}</span>
+                        </div>
+                        
+                        <div class="share-qrcode-section">
+                            <div class="share-qrcode">
+                                <div class="qrcode-placeholder">
+                                    <i class="fas fa-qrcode"></i>
+                                </div>
+                            </div>
+                            <div class="share-qrcode-text">
+                                <p>扫码查看详情</p>
+                                <p class="qrcode-hint">长按识别二维码</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="share-card-footer">
+                        <p>更新时间：${new Date().toLocaleString('zh-CN')}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="image-preview-actions">
+                <button class="preview-action-btn download-btn" onclick="downloadShareImage()">
+                    <i class="fas fa-download"></i>
+                    <span>保存图片</span>
+                </button>
+                <button class="preview-action-btn secondary" onclick="closeImagePreviewModal()">
+                    <span>取消</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    phoneContent.appendChild(imageModal);
+    
+    // 延迟显示，触发动画
+    setTimeout(() => {
+        imageModal.classList.add('active');
+    }, 10);
+}
+
+// 关闭图片预览弹窗
+function closeImagePreviewModal() {
+    const modal = document.getElementById('imagePreviewModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// 下载分享图片
+function downloadShareImage() {
+    // 实际应用中，这里应该使用html2canvas等库将DOM转换为图片
+    showNotification('图片保存功能开发中，实际应用中将使用html2canvas生成图片', 'info');
 }
 
 function copyWeatherMessage(btn) {
