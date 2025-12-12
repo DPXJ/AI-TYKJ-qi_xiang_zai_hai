@@ -12,6 +12,18 @@ body {
     overflow-x: hidden;
 }
 
+/* 全局隐藏滚动条，但保持滚动功能 */
+* {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+*::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+    width: 0;
+    height: 0;
+}
+
 /* 原型容器 */
 .prototype-container {
     display: flex;
@@ -267,8 +279,10 @@ body {
     top: 0;
     z-index: 100;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: sticky;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
 }
 
 .mobile-header h1 {
@@ -283,18 +297,32 @@ body {
     margin-top: 5px;
 }
 
-/* 顶部返回按钮（左上角），不影响标题居中 */
+/* 顶部返回按钮（左侧） */
 .mobile-header .back-btn {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
     background: transparent;
     border: none;
     color: #fff;
     font-size: 18px;
-    padding: 6px;
+    padding: 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+/* 标题容器居中 */
+.mobile-header .header-title {
+    flex: 1;
+    text-align: center;
+    padding: 0 10px;
+}
+
+/* 分享按钮在右侧 */
+.mobile-header .share-btn {
+    flex-shrink: 0;
 }
 
 /* 历史记录按钮容器 */
@@ -10033,7 +10061,7 @@ body {
 
 .weather-report-content {
     padding: 16px;
-    padding-bottom: 80px;
+    padding-bottom: 40px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -10506,6 +10534,7 @@ body {
     background: white;
     border-radius: 12px;
     margin-top: 16px;
+    margin-bottom: 32px;
 }
 
 .footer-text {
@@ -10537,5 +10566,670 @@ body {
 
 .consult-agent-btn i {
     font-size: 18px;
+}
+
+/* ==================== 新增模块样式 ==================== */
+
+/* 历史灾害持续影响 */
+.historical-impact-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.impact-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    border-bottom: 1px solid #fed7aa;
+}
+
+.impact-icon {
+    font-size: 32px;
+}
+
+.impact-info {
+    flex: 1;
+}
+
+.impact-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.impact-date {
+    font-size: 13px;
+    color: #f97316;
+}
+
+.impact-effects {
+    padding: 4px;
+}
+
+.effect-item {
+    padding: 14px;
+    margin: 8px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #e5e7eb;
+}
+
+.effect-item.insufficient {
+    border-left-color: #f97316;
+    background: #fff7ed;
+}
+
+.effect-item.weak {
+    border-left-color: #faad14;
+    background: #fffbf0;
+}
+
+.effect-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.effect-factor {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.effect-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f97316;
+}
+
+.effect-status {
+    font-size: 14px;
+    color: #faad14;
+    font-weight: 600;
+}
+
+.effect-normal {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.effect-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.effect-suggestion {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #0aa06e;
+    line-height: 1.6;
+}
+
+.effect-suggestion i {
+    color: #faad14;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* 作物生长阶段关联分析 */
+.growth-stage-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.stage-crop {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.crop-icon {
+    font-size: 24px;
+}
+
+.crop-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.stage-info {
+    text-align: right;
+}
+
+.stage-name {
+    display: block;
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.critical-period {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 12px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.risk-factors {
+    margin: 12px 0;
+}
+
+.risk-factor-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.risk-factor-item:last-child {
+    margin-bottom: 0;
+}
+
+.risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.risk-type {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.risk-impact {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.risk-impact.impact-high {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.risk-impact.impact-medium {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.risk-impact.impact-low {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.risk-desc {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.growth-measures {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+.growth-measures i {
+    color: #0284c7;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.growth-measures span {
+    font-size: 13px;
+    color: #0c4a6e;
+    line-height: 1.6;
+}
+
+/* 农业关键指标 */
+.indicators-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.indicator-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+}
+
+.indicator-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.indicator-icon {
+    font-size: 24px;
+}
+
+.indicator-name {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.indicator-status {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.indicator-card.low .indicator-status,
+.indicator-card.good .indicator-status {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.indicator-card.medium .indicator-status {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.indicator-card.high .indicator-status {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.indicator-value-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.value-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.value-label {
+    font-size: 12px;
+    color: #999;
+}
+
+.value-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.indicator-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.indicator-trend.improving {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.indicator-trend.worsening {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.indicator-desc {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.indicator-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: #fff7ed;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.indicator-warning i {
+    color: #f97316;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.indicator-warning {
+    font-size: 13px;
+    color: #c2410c;
+    line-height: 1.6;
+}
+
+.indicator-forecast {
+    font-size: 13px;
+    color: #dc2626;
+    background: #fef2f2;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.indicator-suggestion {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: #f0f9ff;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #0c4a6e;
+    line-height: 1.6;
+}
+
+.indicator-suggestion i {
+    color: #0284c7;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* 虫情列表 */
+.pest-list {
+    margin-bottom: 12px;
+}
+
+.pest-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.pest-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pest-name {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.pest-level {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.pest-level.level-high {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.pest-level.level-medium {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.pest-level.level-low {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.pest-count {
+    font-size: 13px;
+    color: #666;
+}
+
+/* 苗情指标 */
+.crop-metrics {
+    margin-bottom: 12px;
+}
+
+.metric-item {
+    margin-bottom: 10px;
+}
+
+.metric-bar {
+    height: 24px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    transition: width 0.5s ease;
+}
+
+.metric-label {
+    font-size: 12px;
+    color: #666;
+}
+
+/* 病害列表 */
+.disease-list {
+    margin-bottom: 12px;
+}
+
+.disease-item {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.disease-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.disease-name {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.disease-risk {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.disease-risk.risk-high {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.disease-risk.risk-medium {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.disease-risk.risk-low {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.disease-reason {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* 未来风险预测 */
+.future-timeline {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+}
+
+.timeline-day {
+    min-width: 140px;
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.timeline-day.high {
+    border-color: #fca5a5;
+    background: linear-gradient(135deg, #fef2f2, white);
+}
+
+.timeline-day.medium {
+    border-color: #fcd34d;
+    background: linear-gradient(135deg, #fffbeb, white);
+}
+
+.timeline-day.low {
+    border-color: #86efac;
+    background: linear-gradient(135deg, #f0fdf4, white);
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.day-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.day-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.day-datestr {
+    font-size: 11px;
+    color: #999;
+}
+
+.day-icon {
+    font-size: 28px;
+}
+
+.day-weather {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.day-temp {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 10px;
+}
+
+.day-risks {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.risk-tag {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.risk-tag.high {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.risk-tag.medium {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.risk-tag.low {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.future-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-radius: 10px;
+    border-left: 4px solid #dc2626;
+}
+
+.future-alert i {
+    color: #dc2626;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 16px;
+}
+
+.future-alert span {
+    font-size: 14px;
+    color: #991b1b;
+    font-weight: 600;
+    line-height: 1.6;
 }
  

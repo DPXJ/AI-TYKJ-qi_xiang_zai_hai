@@ -4200,7 +4200,7 @@ const pageData = {
     
     // 气象详情页面
     weatherDetail: {
-        title: '地块气象灾害预报',
+        title: '地块气象灾害分析报告',
         subtitle: '',
         content: `
             <div class="mobile-page weather-detail-page">
@@ -4209,7 +4209,7 @@ const pageData = {
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="header-title">
-                        <h1>地块气象灾害预报</h1>
+                        <h1>地块气象灾害分析报告</h1>
                     </div>
                     <button class="share-btn" onclick="showShareOptions()">
                         <i class="fas fa-share-alt"></i>
@@ -4222,9 +4222,9 @@ const pageData = {
         `
     },
     
-    // 区域气象灾害分析报告页面
+    // 城市气象灾害预警报告页面
     weatherReport: {
-        title: '区域气象灾害分析报告',
+        title: '城市气象灾害预警报告',
         subtitle: '',
         content: `
             <div class="mobile-page weather-report-page">
@@ -4233,7 +4233,7 @@ const pageData = {
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="header-title">
-                        <h1>区域气象灾害分析报告</h1>
+                        <h1>城市气象灾害预警报告</h1>
                     </div>
                     <button class="share-btn" onclick="shareWeatherReport()">
                         <i class="fas fa-share-alt"></i>
@@ -8339,9 +8339,169 @@ function showWeatherDetailPage(data) {
     }, 100);
 }
 
+// 生成地块详细报告数据（包含详细的农业场景分析）
+function generateFieldDetailData() {
+    return {
+        // 历史灾害持续影响
+        historicalImpact: {
+            lastDisaster: {
+                type: '干旱',
+                date: '2024-10-15',
+                duration: '12天前',
+                icon: '☀️'
+            },
+            currentEffects: [
+                {
+                    factor: '土壤墒情',
+                    status: 'insufficient',
+                    value: '45%',
+                    normal: '60-80%',
+                    description: '上次干旱导致土壤持续缺水，当前墒情不足',
+                    suggestion: '建议在本次降雨前抢墒灌溉，补充土壤水分'
+                },
+                {
+                    factor: '作物长势',
+                    status: 'weak',
+                    value: '弱',
+                    description: '干旱期间作物生长缓慢，根系发育受限',
+                    suggestion: '降雨后及时追肥，促进作物恢复生长'
+                }
+            ]
+        },
+        // 作物生长阶段关联分析
+        cropGrowthAnalysis: [
+            {
+                crop: '辣椒',
+                stage: '结果期',
+                stageIcon: '🌶️',
+                criticalDays: 15,
+                riskFactors: [
+                    {
+                        type: '暴雨积水',
+                        impact: '高',
+                        description: '结果期遇积水易导致落花落果，病害高发'
+                    },
+                    {
+                        type: '后续高温',
+                        impact: '中',
+                        description: '若3天内转晴高温，果实易发生日灼病'
+                    }
+                ],
+                measures: '立即清沟排水，预防性喷施杀菌剂，高温天搭建遮阳网'
+            }
+        ],
+        // 农业关键指标
+        agriIndicators: {
+            soilMoisture: {
+                name: '墒情监测',
+                icon: '💧',
+                status: 'low',
+                statusText: '偏低',
+                value: '45%',
+                range: '正常60-80%',
+                trend: 'improving',
+                trendText: '预计改善',
+                description: '当前土壤墒情不足，本次降雨后将有效改善',
+                warning: '降雨强度大，注意避免由旱转涝'
+            },
+            pestMonitoring: {
+                name: '虫情监测',
+                icon: '🐛',
+                status: 'medium',
+                statusText: '中等',
+                pests: [
+                    { name: '玉米螟', level: 'medium', count: '15头/百株' },
+                    { name: '蚜虫', level: 'low', count: '200头/百株' }
+                ],
+                forecast: '降雨后田间湿度增大，需防范夜蛾类害虫爆发',
+                suggestion: '雨后及时施药防治，选用高效低毒农药'
+            },
+            cropCondition: {
+                name: '苗情监测',
+                icon: '🌱',
+                status: 'good',
+                statusText: '总体较好',
+                metrics: [
+                    { name: '一类苗', percent: 45, color: '#52c41a' },
+                    { name: '二类苗', percent: 40, color: '#faad14' },
+                    { name: '三类苗', percent: 15, color: '#ff4d4f' }
+                ],
+                description: '大部分作物长势正常，少部分受前期干旱影响生长偏弱',
+                suggestion: '雨后对弱苗及时追施速效肥，促进转化升级'
+            },
+            diseaseMonitoring: {
+                name: '病害监测',
+                icon: '🦠',
+                status: 'high',
+                statusText: '风险较高',
+                diseases: [
+                    { name: '辣椒疫病', risk: 'high', reason: '高温高湿环境利于病菌传播' },
+                    { name: '玉米锈病', risk: 'medium', reason: '连阴雨天气易诱发' }
+                ],
+                forecast: '降雨后田间湿度大，病害发生风险显著增加',
+                suggestion: '提前预防性用药，选用保护性+治疗性杀菌剂复配'
+            }
+        },
+        // 未来7天风险预测
+        futureRisks: {
+            timeline: [
+                {
+                    date: '今天',
+                    dateStr: '10-27',
+                    weather: '暴雨',
+                    icon: '🌧️',
+                    temp: '22-26℃',
+                    risks: ['积水风险', '病害传播'],
+                    riskLevel: 'high'
+                },
+                {
+                    date: '明天',
+                    dateStr: '10-28',
+                    weather: '阴转多云',
+                    icon: '⛅',
+                    temp: '20-28℃',
+                    risks: ['高湿环境', '病害高发期'],
+                    riskLevel: 'high'
+                },
+                {
+                    date: '后天',
+                    dateStr: '10-29',
+                    weather: '晴',
+                    icon: '☀️',
+                    temp: '18-30℃',
+                    risks: ['快速升温', '作物应激'],
+                    riskLevel: 'medium'
+                },
+                {
+                    date: '第4天',
+                    dateStr: '10-30',
+                    weather: '晴转多云',
+                    icon: '🌤️',
+                    temp: '20-32℃',
+                    risks: ['高温风险', '蒸腾过旺'],
+                    riskLevel: 'medium'
+                },
+                {
+                    date: '第5-7天',
+                    dateStr: '10-31至11-02',
+                    weather: '多云',
+                    icon: '☁️',
+                    temp: '18-28℃',
+                    risks: ['天气平稳', '适宜田管'],
+                    riskLevel: 'low'
+                }
+            ],
+            keyAlert: '特别关注：降雨后转晴，2-3天内是病虫害防治关键期！'
+        }
+    };
+}
+
 function renderWeatherDetailContent(data) {
     const container = document.getElementById('weatherDetailContent');
     if (!container) return;
+    
+    // 获取详细数据
+    const detailData = generateFieldDetailData();
     
     const trafficLightIcon = data.trafficLight === 'suitable' ? '🟢' : 
                             data.trafficLight === 'warning' ? '🟡' : '🔴';
@@ -8413,6 +8573,206 @@ function renderWeatherDetailContent(data) {
         
         ${alertsHtml}
         ${relatedBasesHtml}
+        
+        <!-- 历史灾害持续影响 -->
+        <div class="detail-section">
+            <div class="section-title"><i class="fas fa-history"></i> 历史灾害持续影响</div>
+            <div class="historical-impact-card">
+                <div class="impact-header">
+                    <span class="impact-icon">${detailData.historicalImpact.lastDisaster.icon}</span>
+                    <div class="impact-info">
+                        <div class="impact-title">${detailData.historicalImpact.lastDisaster.type}</div>
+                        <div class="impact-date">${detailData.historicalImpact.lastDisaster.date}（${detailData.historicalImpact.lastDisaster.duration}）</div>
+                    </div>
+                </div>
+                <div class="impact-effects">
+                    ${detailData.historicalImpact.currentEffects.map(effect => `
+                        <div class="effect-item ${effect.status}">
+                            <div class="effect-header">
+                                <span class="effect-factor">${effect.factor}</span>
+                                <span class="effect-value">${effect.value}</span>
+                            </div>
+                            <div class="effect-normal">正常范围：${effect.normal}</div>
+                            <div class="effect-desc">${effect.description}</div>
+                            <div class="effect-suggestion">
+                                <i class="fas fa-lightbulb"></i>
+                                ${effect.suggestion}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 作物生长阶段关联分析 -->
+        <div class="detail-section">
+            <div class="section-title"><i class="fas fa-leaf"></i> 作物生长阶段关联分析</div>
+            ${detailData.cropGrowthAnalysis.map(crop => `
+                <div class="growth-stage-card">
+                    <div class="stage-header">
+                        <div class="stage-crop">
+                            <span class="crop-icon">${crop.stageIcon}</span>
+                            <span class="crop-name">${crop.crop}</span>
+                        </div>
+                        <div class="stage-info">
+                            <span class="stage-name">${crop.stage}</span>
+                            <span class="critical-period">关键期${crop.criticalDays}天</span>
+                        </div>
+                    </div>
+                    <div class="risk-factors">
+                        ${crop.riskFactors.map(risk => `
+                            <div class="risk-factor-item">
+                                <div class="risk-header">
+                                    <span class="risk-type">${risk.type}</span>
+                                    <span class="risk-impact impact-${risk.impact === '高' ? 'high' : risk.impact === '中' ? 'medium' : 'low'}">
+                                        ${risk.impact}影响
+                                    </span>
+                                </div>
+                                <div class="risk-desc">${risk.description}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="growth-measures">
+                        <i class="fas fa-tools"></i>
+                        <span>${crop.measures}</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <!-- 农业关键指标 -->
+        <div class="detail-section">
+            <div class="section-title"><i class="fas fa-chart-line"></i> 农业关键指标监测</div>
+            <div class="indicators-grid">
+                <!-- 墒情监测 -->
+                <div class="indicator-card soil-moisture ${detailData.agriIndicators.soilMoisture.status}">
+                    <div class="indicator-header">
+                        <span class="indicator-icon">${detailData.agriIndicators.soilMoisture.icon}</span>
+                        <span class="indicator-name">${detailData.agriIndicators.soilMoisture.name}</span>
+                        <span class="indicator-status">${detailData.agriIndicators.soilMoisture.statusText}</span>
+                    </div>
+                    <div class="indicator-value-row">
+                        <div class="value-item">
+                            <span class="value-label">当前</span>
+                            <span class="value-number">${detailData.agriIndicators.soilMoisture.value}</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-label">${detailData.agriIndicators.soilMoisture.range}</span>
+                        </div>
+                    </div>
+                    <div class="indicator-trend ${detailData.agriIndicators.soilMoisture.trend}">
+                        <i class="fas fa-arrow-up"></i>
+                        ${detailData.agriIndicators.soilMoisture.trendText}
+                    </div>
+                    <div class="indicator-desc">${detailData.agriIndicators.soilMoisture.description}</div>
+                    <div class="indicator-warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${detailData.agriIndicators.soilMoisture.warning}
+                    </div>
+                </div>
+                
+                <!-- 虫情监测 -->
+                <div class="indicator-card pest-monitoring ${detailData.agriIndicators.pestMonitoring.status}">
+                    <div class="indicator-header">
+                        <span class="indicator-icon">${detailData.agriIndicators.pestMonitoring.icon}</span>
+                        <span class="indicator-name">${detailData.agriIndicators.pestMonitoring.name}</span>
+                        <span class="indicator-status">${detailData.agriIndicators.pestMonitoring.statusText}</span>
+                    </div>
+                    <div class="pest-list">
+                        ${detailData.agriIndicators.pestMonitoring.pests.map(pest => `
+                            <div class="pest-item">
+                                <div class="pest-info">
+                                    <span class="pest-name">${pest.name}</span>
+                                    <span class="pest-level level-${pest.level}">${pest.level === 'high' ? '高' : pest.level === 'medium' ? '中' : '低'}发</span>
+                                </div>
+                                <div class="pest-count">${pest.count}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="indicator-forecast">${detailData.agriIndicators.pestMonitoring.forecast}</div>
+                    <div class="indicator-suggestion">
+                        <i class="fas fa-lightbulb"></i>
+                        ${detailData.agriIndicators.pestMonitoring.suggestion}
+                    </div>
+                </div>
+                
+                <!-- 苗情监测 -->
+                <div class="indicator-card crop-condition ${detailData.agriIndicators.cropCondition.status}">
+                    <div class="indicator-header">
+                        <span class="indicator-icon">${detailData.agriIndicators.cropCondition.icon}</span>
+                        <span class="indicator-name">${detailData.agriIndicators.cropCondition.name}</span>
+                        <span class="indicator-status">${detailData.agriIndicators.cropCondition.statusText}</span>
+                    </div>
+                    <div class="crop-metrics">
+                        ${detailData.agriIndicators.cropCondition.metrics.map(metric => `
+                            <div class="metric-item">
+                                <div class="metric-bar" style="width: ${metric.percent}%; background: ${metric.color};"></div>
+                                <div class="metric-label">${metric.name} ${metric.percent}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="indicator-desc">${detailData.agriIndicators.cropCondition.description}</div>
+                    <div class="indicator-suggestion">
+                        <i class="fas fa-lightbulb"></i>
+                        ${detailData.agriIndicators.cropCondition.suggestion}
+                    </div>
+                </div>
+                
+                <!-- 病害监测 -->
+                <div class="indicator-card disease-monitoring ${detailData.agriIndicators.diseaseMonitoring.status}">
+                    <div class="indicator-header">
+                        <span class="indicator-icon">${detailData.agriIndicators.diseaseMonitoring.icon}</span>
+                        <span class="indicator-name">${detailData.agriIndicators.diseaseMonitoring.name}</span>
+                        <span class="indicator-status">${detailData.agriIndicators.diseaseMonitoring.statusText}</span>
+                    </div>
+                    <div class="disease-list">
+                        ${detailData.agriIndicators.diseaseMonitoring.diseases.map(disease => `
+                            <div class="disease-item">
+                                <div class="disease-info">
+                                    <span class="disease-name">${disease.name}</span>
+                                    <span class="disease-risk risk-${disease.risk}">
+                                        ${disease.risk === 'high' ? '🔴 高' : disease.risk === 'medium' ? '🟡 中' : '🟢 低'}风险
+                                    </span>
+                                </div>
+                                <div class="disease-reason">${disease.reason}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="indicator-forecast">${detailData.agriIndicators.diseaseMonitoring.forecast}</div>
+                    <div class="indicator-suggestion">
+                        <i class="fas fa-lightbulb"></i>
+                        ${detailData.agriIndicators.diseaseMonitoring.suggestion}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 未来7天风险预测 -->
+        <div class="detail-section">
+            <div class="section-title"><i class="fas fa-calendar-week"></i> 未来7天风险预测</div>
+            <div class="future-timeline">
+                ${detailData.futureRisks.timeline.map(day => `
+                    <div class="timeline-day ${day.riskLevel}">
+                        <div class="day-header">
+                            <div class="day-info">
+                                <span class="day-date">${day.date}</span>
+                                <span class="day-datestr">${day.dateStr}</span>
+                            </div>
+                            <span class="day-icon">${day.icon}</span>
+                        </div>
+                        <div class="day-weather">${day.weather}</div>
+                        <div class="day-temp">${day.temp}</div>
+                        <div class="day-risks">
+                            ${day.risks.map(risk => `<span class="risk-tag ${day.riskLevel}">${risk}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="future-alert">
+                <i class="fas fa-bullhorn"></i>
+                <span>${detailData.futureRisks.keyAlert}</span>
+            </div>
+        </div>
         
         <div class="detail-section">
             <div class="section-title"><i class="fas fa-lightbulb"></i> 农事建议</div>
@@ -8836,7 +9196,7 @@ function renderWeatherReport() {
     container.scrollTop = 0;
 }
 
-// 生成报告数据（模拟数据）
+// 生成城市级报告数据（简单版本）
 function generateWeatherReportData(location) {
     // 当前预警
     const currentAlerts = [
@@ -8892,12 +9252,12 @@ function generateWeatherReportData(location) {
         }
     ];
     
-    // 防范建议
+    // 防范建议（城市级别，简单版本）
     const advice = [
-        '立即排水：请在雨停后2小时内疏通田间沟渠，确保田间无积水。',
-        '药剂预防：退水后，建议喷施一次"瑞苗清"或"甲霜·恶霉灵"预防根部病害。',
-        '大棚管理：检查压膜线是否松动，防止大风撕膜。',
-        '作物加固：对高秆作物进行适当加固，防止倒伏。'
+        '关注天气变化，及时了解最新预警信息',
+        '加强田间管理，确保排水系统畅通',
+        '根据预警级别，及时采取防范措施',
+        '如需专业指导，请咨询气象灾害智能体'
     ];
     
     // 风险指数计算
@@ -8970,13 +9330,12 @@ function generateReportHTML(data, location) {
     return `
         <!-- 报告头部 -->
         <div class="report-header">
-            <div class="report-title">${location.fullName}·农业气象灾害分析报告</div>
+            <div class="report-title">${location.city}·城市气象灾害预警报告</div>
             <div class="report-meta">
                 <div class="report-time">${data.updateTime} 更新</div>
                 <div class="report-location">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>${location.fullName}</span>
-                    <button class="location-switch-btn" onclick="showLocationSelector()">切换</button>
+                    <span>${location.city}</span>
                 </div>
             </div>
             <div class="risk-gauge">
@@ -9014,14 +9373,14 @@ function generateReportHTML(data, location) {
         <div class="report-section">
             <div class="section-header">
                 <i class="fas fa-chart-bar"></i>
-                <h2>过去30天灾害回顾（${location.city}）</h2>
+                <h2>过去30天灾害回顾</h2>
             </div>
             <div class="section-content">
                 ${historyChartHTML}
                 <div class="history-insight">
                     <div class="insight-icon">💡</div>
                     <div class="insight-text">
-                        过去一个月${location.city}大风天气频发（占比${data.historyStats.byType[0]?.percent || 0}%），建议种植户检查加固大棚设施，未来选种可优先考虑抗倒伏品种。
+                        过去一个月${location.city}大风天气频发（占比${data.historyStats.byType[0]?.percent || 0}%），建议检查加固大棚设施。
                     </div>
                 </div>
             </div>
@@ -9031,7 +9390,7 @@ function generateReportHTML(data, location) {
         <div class="report-section">
             <div class="section-header">
                 <i class="fas fa-lightbulb"></i>
-                <h2>专家防范建议</h2>
+                <h2>防范建议</h2>
             </div>
             <div class="section-content">
                 <ol class="advice-list">
@@ -9042,7 +9401,7 @@ function generateReportHTML(data, location) {
         
         <!-- 底部导流 -->
         <div class="report-footer">
-            <div class="footer-text">对报告内容有疑问？或想查询具体地块情况？</div>
+            <div class="footer-text">想了解具体地块的详细情况？</div>
             <button class="consult-agent-btn" onclick="consultWeatherAgent()">
                 <i class="fas fa-robot"></i>
                 <span>咨询气象灾害智能体</span>
