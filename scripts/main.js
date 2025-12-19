@@ -199,7 +199,7 @@ const pageData = {
                     <button class="back-btn" onclick="loadPage('home')">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <h1>AI对话</h1>
+                    <h1 class="header-title-center">AI对话</h1>
                 </div>
                 <div class="mobile-content">
                     <!-- 历史记录按钮 -->
@@ -244,13 +244,13 @@ const pageData = {
                     <div class="recommended-agents">
                         <div class="agents-hint">快速访问</div>
                         <div class="agents-grid agents-scroll">
-                            <div class="agent-card weather-disaster-card" onclick="loadWeatherDisasterHome()">
+                            <div class="agent-card" onclick="loadWeatherDisasterHome()">
                                 <i class="fas fa-cloud-sun-rain"></i>
                                 <span>气象灾害预警</span>
                             </div>
-                            <div class="agent-card" onclick="loadAgentChatPage('pest-diagnosis', '病虫害诊断')">
-                                <i class="fas fa-bug"></i>
-                                <span>病虫害诊断</span>
+                            <div class="agent-card" onclick="loadWeatherDisasterAgent()">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <span>地块灾害预警</span>
                             </div>
                             <div class="agent-card" onclick="loadAgentChatPage('weed-control-analysis', '除草成效分析')">
                                 <i class="fas fa-spray-can"></i>
@@ -4235,7 +4235,7 @@ const pageData = {
                     <div class="header-title">
                         <h1>城市气象灾害预警报告</h1>
                     </div>
-                    <button class="share-btn" onclick="shareWeatherReport()">
+                    <button class="share-btn" id="weatherReportShareBtn" onclick="shareWeatherReport()" style="display:none;">
                         <i class="fas fa-share-alt"></i>
                     </button>
                 </div>
@@ -5222,6 +5222,10 @@ function ensureTabbar(pageName) {
         const isAIFourMenuPage = ['agentMarket','aiChatCenter','mySubscriptions','aiNewChat','expertRecommend','historyDialog','aiDiagnosis','pestDetect'].includes(pageName);
         // 若页面内不存在通用 tabbar，则插入（非AI四菜单页）
         if (!isAIFourMenuPage && !pageEl.querySelector('.mobile-footer.tabbar')) {
+            // 确保weather-report-page使用flex布局
+            if (pageName === 'weatherReport') {
+                pageEl.classList.add('weather-report-page');
+            }
             const footerHtml = `
                 <div class="mobile-footer tabbar">
                     <div class="tab-item" data-page="home"><i class="fas fa-home"></i><span>首页</span></div>
@@ -9169,6 +9173,15 @@ function updateWeatherBanner(banner, alertStatus, location) {
     bannerTitle.textContent = title;
 }
 
+// 当前选中的城市
+let currentReportCity = {
+    city: '柘城县',
+    province: '河南省商丘市',
+    fullName: '河南省商丘市柘城县',
+    lat: 34.0865,
+    lng: 115.6699
+};
+
 // 加载气象报告页面
 function loadWeatherReport() {
     loadPage('weatherReport');
@@ -9176,24 +9189,178 @@ function loadWeatherReport() {
 
 // 渲染气象报告内容
 function renderWeatherReport() {
+    // 先显示加载提示
+    showWeatherReportLoading();
+    // 延迟后生成报告卡片
+    setTimeout(() => {
+        showWeatherReportCard();
+    }, 1500);
+}
+
+// 显示报告加载提示
+function showWeatherReportLoading() {
     const container = document.getElementById('weatherReportContent');
     if (!container) return;
     
-    // 获取当前位置和预警数据
-    const location = {
-        city: '柘城县',
-        province: '河南省商丘市',
-        fullName: '河南省商丘市柘城县',
-        lat: 34.0865,
-        lng: 115.6699
-    };
+    container.innerHTML = `
+        <div class="weather-report-loading">
+            <div class="loading-icon">
+                <i class="fas fa-cloud-sun-rain"></i>
+            </div>
+            <div class="loading-text">正在为您生成报告中，请稍后...</div>
+        </div>
+    `;
     
-    const reportData = generateWeatherReportData(location);
+    // 隐藏分享按钮
+    const shareBtn = document.getElementById('weatherReportShareBtn');
+    if (shareBtn) {
+        shareBtn.style.display = 'none';
+    }
+}
+
+// 显示报告卡片预览
+function showWeatherReportCard() {
+    const container = document.getElementById('weatherReportContent');
+    if (!container) return;
     
-    container.innerHTML = generateReportHTML(reportData, location);
+    const reportData = generateWeatherReportData(currentReportCity);
+    const alertType = reportData.currentAlerts.length > 0 ? 
+        (reportData.currentAlerts[0].type === 'rain' ? '暴雨' : 
+         reportData.currentAlerts[0].type === 'wind' ? '大风' : 
+         reportData.currentAlerts[0].type === 'heat' ? '高温' : '预警') : '无预警';
+    
+    // 获取主要作物影响（优先取isMain为true的，否则取第一个）
+    const mainCrop = reportData.cropImpacts.find(crop => crop.isMain) || reportData.cropImpacts[0];
+    const cropImpactHtml = mainCrop ? `
+        <div class="report-card-crop-impact">
+            <i class="fas fa-seedling"></i>
+            <span class="crop-impact-text">${mainCrop.crop}：${mainCrop.riskText}</span>
+        </div>
+    ` : '';
+    
+    container.innerHTML = `
+        <div class="weather-report-card-container">
+            <div class="weather-report-card" onclick="showWeatherReportDetail()">
+                <div class="report-card-header">
+                    <div class="report-card-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="report-card-title">${currentReportCity.city}·城市气象灾害预警报告</div>
+                </div>
+                <div class="report-card-content">
+                    <div class="report-card-alert">
+                        <span class="alert-type">${alertType}</span>
+                        <span class="alert-level">${reportData.currentAlerts.length > 0 ? getAlertLevelText(reportData.currentAlerts[0].level) : '无预警'}</span>
+                    </div>
+                    <div class="report-card-risk">
+                        <span class="risk-label">风险指数：</span>
+                        <span class="risk-value ${reportData.riskScore >= 30 ? 'high' : reportData.riskScore >= 15 ? 'medium' : 'low'}">${reportData.riskLevel}</span>
+                    </div>
+                    ${cropImpactHtml}
+                    <div class="report-card-time">${reportData.updateTime} 更新</div>
+                </div>
+                <div class="report-card-footer">
+                    <span class="view-report-text">点击查看详细报告</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            <div class="city-switch-section">
+                <button class="city-switch-btn" onclick="showCitySelector()">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>切换城市</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // 隐藏分享按钮
+    const shareBtn = document.getElementById('weatherReportShareBtn');
+    if (shareBtn) {
+        shareBtn.style.display = 'none';
+    }
+}
+
+// 显示报告详情
+function showWeatherReportDetail() {
+    const container = document.getElementById('weatherReportContent');
+    const shareBtn = document.getElementById('weatherReportShareBtn');
+    if (!container) return;
+    
+    const reportData = generateWeatherReportData(currentReportCity);
+    container.innerHTML = generateReportHTML(reportData, currentReportCity);
+    
+    // 显示分享按钮
+    if (shareBtn) {
+        shareBtn.style.display = 'block';
+    }
     
     // 滚动到顶部
     container.scrollTop = 0;
+}
+
+// 显示城市选择器
+function showCitySelector() {
+    const cities = [
+        { city: '柘城县', province: '河南省商丘市', fullName: '河南省商丘市柘城县', lat: 34.0865, lng: 115.6699 },
+        { city: '郑州市', province: '河南省', fullName: '河南省郑州市', lat: 34.7466, lng: 113.6254 },
+        { city: '商丘市', province: '河南省', fullName: '河南省商丘市', lat: 34.4371, lng: 115.6564 },
+        { city: '周口市', province: '河南省', fullName: '河南省周口市', lat: 33.6204, lng: 114.6969 }
+    ];
+    
+    const cityOptions = cities.map(city => 
+        `<div class="city-option ${city.city === currentReportCity.city ? 'active' : ''}" onclick="selectReportCity('${city.city}')">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>${city.city}</span>
+            ${city.city === currentReportCity.city ? '<i class="fas fa-check"></i>' : ''}
+        </div>`
+    ).join('');
+    
+    const container = document.getElementById('weatherReportContent');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="city-selector-modal">
+            <div class="city-selector-header">
+                <h3>选择城市</h3>
+                <button class="close-btn" onclick="showWeatherReportCard()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="city-selector-content">
+                ${cityOptions}
+            </div>
+        </div>
+    `;
+    
+    // 隐藏分享按钮
+    const shareBtn = document.getElementById('weatherReportShareBtn');
+    if (shareBtn) {
+        shareBtn.style.display = 'none';
+    }
+}
+
+// 选择城市
+function selectReportCity(cityName) {
+    const cities = {
+        '柘城县': { city: '柘城县', province: '河南省商丘市', fullName: '河南省商丘市柘城县', lat: 34.0865, lng: 115.6699 },
+        '郑州市': { city: '郑州市', province: '河南省', fullName: '河南省郑州市', lat: 34.7466, lng: 113.6254 },
+        '商丘市': { city: '商丘市', province: '河南省', fullName: '河南省商丘市', lat: 34.4371, lng: 115.6564 },
+        '周口市': { city: '周口市', province: '河南省', fullName: '河南省周口市', lat: 33.6204, lng: 114.6969 }
+    };
+    
+    if (cities[cityName]) {
+        currentReportCity = cities[cityName];
+        // 重新生成报告卡片
+        showWeatherReportLoading();
+        setTimeout(() => {
+            showWeatherReportCard();
+        }, 1500);
+    }
+}
+
+// 从详情页面显示城市选择器
+function showCitySelectorFromDetail() {
+    showCitySelector();
 }
 
 // 生成城市级报告数据（简单版本）
@@ -9399,12 +9566,11 @@ function generateReportHTML(data, location) {
             </div>
         </div>
         
-        <!-- 底部导流 -->
+        <!-- 底部城市切换 -->
         <div class="report-footer">
-            <div class="footer-text">想了解具体地块的详细情况？</div>
-            <button class="consult-agent-btn" onclick="consultWeatherAgent()">
-                <i class="fas fa-robot"></i>
-                <span>咨询气象灾害智能体</span>
+            <button class="city-switch-btn" onclick="showCitySelectorFromDetail()">
+                <i class="fas fa-exchange-alt"></i>
+                <span>切换城市</span>
             </button>
         </div>
     `;
@@ -9490,7 +9656,7 @@ function consultWeatherAgent() {
 
 // 分享报告
 function shareWeatherReport() {
-    showNotification('报告分享功能开发中', 'info');
+    showShareOptions();
 }
 
 // 显示位置选择器

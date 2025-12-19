@@ -291,6 +291,14 @@ body {
     margin: 0;
 }
 
+/* AI对话页面标题居中 */
+.mobile-header .header-title-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
 .mobile-header .subtitle {
     font-size: 14px;
     opacity: 0.9;
@@ -7960,20 +7968,21 @@ body {
 }
 
 /* ===== 气象灾害智能体样式 ===== */
+/* 移除气象灾害预警卡片的背景填充，正常显示 */
 .weather-disaster-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none !important;
+    background: #fff !important;
+    color: #333 !important;
+    border: 1px solid #eee !important;
 }
 
 .weather-disaster-card i {
-    color: white !important;
-    font-size: 24px !important;
+    color: #21c08b !important;
+    font-size: 20px !important;
 }
 
 .weather-disaster-card span {
-    color: white !important;
-    font-weight: 600;
+    color: #333 !important;
+    font-weight: normal !important;
 }
 
 /* 气象灾害简报快捷卡片 */
@@ -8209,9 +8218,18 @@ body {
 
 .weather-disaster-page {
     background: linear-gradient(180deg, #f0f4f8 0%, #ffffff 100%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    position: relative;
+}
+
+/* 确保覆盖 mobile-page 的 overflow-y: auto */
+.mobile-page.weather-disaster-page {
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
 }
 
 .weather-header {
@@ -8224,6 +8242,7 @@ body {
     gap: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     position: relative;
+    flex-shrink: 0;
 }
 
 .weather-header .back-btn {
@@ -8279,17 +8298,21 @@ body {
 }
 
 .weather-content {
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
+    position: relative;
 }
 
 .weather-messages-container {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 16px;
     background: #f8f9fa;
+    min-height: 0;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
 }
@@ -9265,17 +9288,34 @@ body {
 /* 输入区域 */
 .weather-input-area {
     padding: 12px 16px;
-    background: white;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: white !important;
     border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    flex-grow: 0;
+    z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    margin: 0;
+    min-height: 60px;
+    height: auto;
 }
 
 .weather-input-container {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 8px;
     background: #f8f9fa;
     border-radius: 24px;
     padding: 8px 12px;
+    width: 100%;
+    box-sizing: border-box;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .weather-location-btn,
@@ -9303,6 +9343,9 @@ body {
     color: #333;
     outline: none;
     padding: 4px 8px;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
 }
 
 .weather-input::placeholder {
@@ -9310,17 +9353,20 @@ body {
 }
 
 .weather-send-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
     border: none;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
 }
 
 .weather-send-btn:hover {
@@ -10057,11 +10103,16 @@ body {
 .weather-report-page {
     background: #f5f7fa;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .weather-report-content {
+    flex: 1;
     padding: 16px;
-    padding-bottom: 40px;
+    padding-bottom: 16px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -10069,6 +10120,21 @@ body {
 
 .weather-report-content::-webkit-scrollbar {
     display: none;
+}
+
+/* 气象报告页面底部导航 */
+.weather-report-page .mobile-footer {
+    flex-shrink: 0;
+    position: static !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    margin-top: 0;
+}
+
+.weather-report-page .mobile-footer .tabbar {
+    margin-top: 0;
+    border-top: 1px solid #eee;
 }
 
 /* 报告头部 */
@@ -10527,6 +10593,322 @@ body {
     font-size: 14px;
 }
 
+/* 报告加载提示 */
+.weather-report-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    min-height: 400px;
+}
+
+.weather-report-loading .loading-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+    margin-bottom: 24px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.weather-report-loading .loading-text {
+    font-size: 16px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* 报告卡片容器 */
+.weather-report-card-container {
+    padding: 16px 0;
+}
+
+/* 报告卡片预览 */
+.weather-report-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.weather-report-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.12);
+}
+
+.report-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.report-card-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.report-card-title {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.report-card-content {
+    margin-bottom: 16px;
+}
+
+.report-card-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.alert-type {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.alert-level {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #fff3cd;
+    color: #856404;
+}
+
+.report-card-risk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.risk-label {
+    font-size: 14px;
+    color: #666;
+}
+
+.risk-value {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+}
+
+.risk-value.high {
+    background: #fff1f0;
+    color: #ff4d4f;
+}
+
+.risk-value.medium {
+    background: #fff7e6;
+    color: #faad14;
+}
+
+.risk-value.low {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.report-card-time {
+    font-size: 12px;
+    color: #999;
+}
+
+/* 报告卡片作物影响提示 */
+.report-card-crop-impact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    margin: 12px 0;
+    border-left: 3px solid #667eea;
+}
+
+.report-card-crop-impact i {
+    color: #667eea;
+    font-size: 14px;
+}
+
+.report-card-crop-impact .crop-impact-text {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.4;
+}
+
+.report-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.view-report-text {
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 500;
+}
+
+.report-card-footer i {
+    color: #667eea;
+    font-size: 14px;
+}
+
+/* 城市切换区域 */
+.city-switch-section {
+    padding: 16px 0;
+    text-align: center;
+}
+
+.city-switch-btn {
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 15px;
+    color: #666;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.city-switch-btn:active {
+    background: #f5f5f5;
+    transform: scale(0.98);
+}
+
+.city-switch-btn i {
+    color: #667eea;
+}
+
+/* 城市选择器弹窗 */
+.city-selector-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.city-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.city-selector-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.city-selector-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.city-selector-header .close-btn:active {
+    background: #f5f5f5;
+}
+
+.city-selector-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.city-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.city-option:hover {
+    background: #f5f7fa;
+}
+
+.city-option.active {
+    background: #f0f5ff;
+    border-color: #667eea;
+}
+
+.city-option i.fa-map-marker-alt {
+    color: #667eea;
+    margin-right: 12px;
+}
+
+.city-option span {
+    flex: 1;
+    font-size: 15px;
+    color: #333;
+}
+
+.city-option.active span {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.city-option i.fa-check {
+    color: #667eea;
+    font-size: 14px;
+}
+
 /* 报告底部 */
 .report-footer {
     text-align: center;
@@ -10535,6 +10917,31 @@ body {
     border-radius: 12px;
     margin-top: 16px;
     margin-bottom: 32px;
+}
+
+.report-footer .city-switch-btn {
+    width: 100%;
+    padding: 14px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.report-footer .city-switch-btn:active {
+    background: #f5f5f5;
+    transform: scale(0.98);
+}
+
+.report-footer .city-switch-btn i {
+    color: #667eea;
 }
 
 .footer-text {
