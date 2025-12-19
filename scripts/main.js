@@ -47,7 +47,7 @@ const pageData = {
                             </div>
                             <div class="banner-text">
                                 <div class="banner-title" id="bannerTitle">柘城县今日气象平稳，适宜农事作业</div>
-                                <div class="banner-subtitle">点击查看详细报告</div>
+                                <div class="banner-subtitle" id="bannerSubtitle">点击查看详细预报</div>
                             </div>
                             <div class="banner-arrow">
                                 <i class="fas fa-chevron-right"></i>
@@ -9130,10 +9130,21 @@ function getCurrentAlertStatus(location) {
         else if (levels.includes('blue')) maxLevel = 'blue';
     }
     
+    // 获取当前天气数据（模拟）
+    const currentWeather = {
+        temp: '15℃',
+        condition: '暴雨'
+    };
+    
+    // 获取主要作物防护提示（模拟）
+    const mainCrop = '辣椒';
+    
     return {
         level: maxLevel,
         alerts: alerts,
-        hasAlert: alerts.length > 0
+        hasAlert: alerts.length > 0,
+        currentWeather: currentWeather,
+        mainCrop: mainCrop
     };
 }
 
@@ -9141,24 +9152,43 @@ function getCurrentAlertStatus(location) {
 function updateWeatherBanner(banner, alertStatus, location) {
     const bannerIcon = document.getElementById('bannerIcon');
     const bannerTitle = document.getElementById('bannerTitle');
+    const bannerSubtitle = document.getElementById('bannerSubtitle');
     
     if (!banner || !bannerIcon || !bannerTitle) return;
     
     // 根据预警级别设置样式
     let bgColor, icon, title, iconClass;
     
-    if (alertStatus.level === 'red' || alertStatus.level === 'orange') {
-        // 危急态
-        bgColor = 'linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)';
-        icon = '<i class="fas fa-exclamation-triangle"></i>';
-        title = `紧急：${location.city}${alertStatus.alerts[0]?.text || '发布气象预警'}！点击查看防灾报告`;
-        iconClass = 'danger';
-    } else if (alertStatus.level === 'yellow') {
-        // 关注态
-        bgColor = 'linear-gradient(135deg, #faad14 0%, #d48806 100%)';
-        icon = '<i class="fas fa-wind"></i>';
-        title = `${location.city}${alertStatus.alerts[0]?.text || '发布气象预警'}，请注意防范`;
-        iconClass = 'warning';
+    if (alertStatus.level === 'red' || alertStatus.level === 'orange' || alertStatus.level === 'yellow' || alertStatus.level === 'blue') {
+        // 有预警的情况
+        if (alertStatus.level === 'red' || alertStatus.level === 'orange') {
+            // 危急态
+            bgColor = 'linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)';
+            icon = '<i class="fas fa-exclamation-triangle"></i>';
+            iconClass = 'danger';
+        } else {
+            // 关注态（黄色、蓝色）
+            bgColor = 'linear-gradient(135deg, #faad14 0%, #d48806 100%)';
+            icon = '<i class="fas fa-cloud-rain"></i>';
+            iconClass = 'warning';
+        }
+        
+        // 获取预警类型
+        const alertType = alertStatus.alerts[0]?.type === 'rain' ? '暴雨' : 
+                         alertStatus.alerts[0]?.type === 'wind' ? '大风' : 
+                         alertStatus.alerts[0]?.type === 'heat' ? '高温' : '预警';
+        
+        // 获取城市简称（去掉"县"、"市"等后缀）
+        const cityShort = location.city.replace(/[县市区]$/, '');
+        
+        // 获取温度
+        const temp = alertStatus.currentWeather?.temp || '15℃';
+        
+        // 获取主要作物防护提示
+        const cropProtection = alertStatus.mainCrop ? `注意${alertStatus.mainCrop}防护` : '请注意防范';
+        
+        // 格式化标题：柘城 今日 暴雨，15℃ ，注意辣椒防护
+        title = `${cityShort} 今日 ${alertType}，${temp}，${cropProtection}`;
     } else {
         // 平安态
         bgColor = 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)';
@@ -9171,6 +9201,11 @@ function updateWeatherBanner(banner, alertStatus, location) {
     bannerIcon.innerHTML = icon;
     bannerIcon.className = `banner-icon ${iconClass}`;
     bannerTitle.textContent = title;
+    
+    // 确保副标题显示"点击查看详细预报"
+    if (bannerSubtitle) {
+        bannerSubtitle.textContent = '点击查看详细预报';
+    }
 }
 
 // 当前选中的城市
