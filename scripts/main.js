@@ -7629,11 +7629,10 @@ function initWeatherDisasterAgent() {
     // 清空消息
     messagesContainer.innerHTML = '';
     
-    // 显示加载状态
-    addWeatherMessage('ai', '', 'loading');
-    
-    // 请求GPS权限并初始化
-    requestLocationPermission(true);
+    // 直接显示地块气象简报，不需要定位
+    setTimeout(() => {
+        showWeatherBriefing(null, null);
+    }, 500);
 }
 
 function requestLocationPermission(autoInit = false) {
@@ -9133,7 +9132,9 @@ function getCurrentAlertStatus(location) {
     // 获取当前天气数据（模拟）
     const currentWeather = {
         temp: '15℃',
-        condition: '暴雨'
+        tempRange: '10℃-15℃',
+        condition: '暴雨',
+        wind: '八级大风'
     };
     
     // 获取主要作物防护提示（模拟）
@@ -9181,14 +9182,19 @@ function updateWeatherBanner(banner, alertStatus, location) {
         // 获取城市简称（去掉"县"、"市"等后缀）
         const cityShort = location.city.replace(/[县市区]$/, '');
         
-        // 获取温度
-        const temp = alertStatus.currentWeather?.temp || '15℃';
+        // 获取温度范围
+        const tempRange = alertStatus.currentWeather?.tempRange || '10℃-15℃';
         
-        // 获取主要作物防护提示
-        const cropProtection = alertStatus.mainCrop ? `注意${alertStatus.mainCrop}防护` : '请注意防范';
+        // 获取风力
+        const wind = alertStatus.currentWeather?.wind || '八级大风';
         
-        // 格式化标题：柘城 今日 暴雨，15℃ ，注意辣椒防护
-        title = `${cityShort} 今日 ${alertType}，${temp}，${cropProtection}`;
+        // 格式化标题：柘城 今日天气（暴雨 10℃-15℃ 八级大风）点击查看气象灾害专属报告
+        title = `${cityShort} 今日天气（${alertType} ${tempRange} ${wind}）`;
+        
+        // 副标题显示：点击查看气象灾害专属报告
+        if (bannerSubtitle) {
+            bannerSubtitle.textContent = '点击查看气象灾害专属报告';
+        }
     } else {
         // 平安态
         bgColor = 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)';
@@ -9412,24 +9418,82 @@ function generateWeatherReportData(location) {
         }
     ];
     
-    // 历史统计（过去30天）
-    const historyStats = {
-        total: 5,
-        byType: [
-            { type: '大风', count: 3, percent: 60 },
-            { type: '暴雨', count: 1, percent: 20 },
-            { type: '高温', count: 1, percent: 20 }
-        ],
-        trend: [
-            { date: '10-01', count: 0 },
-            { date: '10-05', count: 1 },
-            { date: '10-10', count: 0 },
-            { date: '10-15', count: 2 },
-            { date: '10-20', count: 1 },
-            { date: '10-25', count: 1 },
-            { date: '10-27', count: 1 }
-        ]
+    // 当前天气
+    const currentWeather = {
+        temp: '15°C',
+        humidity: '85%',
+        wind: '8级',
+        condition: '暴雨'
     };
+    
+    // 近七天天气
+    const sevenDayWeather = [
+        {
+            date: '今天',
+            dateStr: '10-27',
+            weather: '暴雨',
+            icon: '🌧️',
+            temp: '10-15℃',
+            risks: ['积水风险', '病害传播'],
+            riskLevel: 'high'
+        },
+        {
+            date: '明天',
+            dateStr: '10-28',
+            weather: '阴转多云',
+            icon: '⛅',
+            temp: '12-18℃',
+            risks: ['高湿环境', '病害高发期'],
+            riskLevel: 'medium'
+        },
+        {
+            date: '后天',
+            dateStr: '10-29',
+            weather: '多云',
+            icon: '☁️',
+            temp: '14-20℃',
+            risks: ['天气平稳', '适宜田管'],
+            riskLevel: 'low'
+        },
+        {
+            date: '第4天',
+            dateStr: '10-30',
+            weather: '晴',
+            icon: '☀️',
+            temp: '16-22℃',
+            risks: ['天气平稳', '适宜田管'],
+            riskLevel: 'low'
+        },
+        {
+            date: '第5天',
+            dateStr: '10-31',
+            weather: '晴',
+            icon: '☀️',
+            temp: '18-24℃',
+            risks: ['天气平稳', '适宜田管'],
+            riskLevel: 'low'
+        },
+        {
+            date: '第6天',
+            dateStr: '11-01',
+            weather: '多云',
+            icon: '☁️',
+            temp: '16-22℃',
+            risks: ['天气平稳', '适宜田管'],
+            riskLevel: 'low'
+        },
+        {
+            date: '第7天',
+            dateStr: '11-02',
+            weather: '小雨',
+            icon: '🌦️',
+            temp: '14-20℃',
+            risks: ['轻微降雨', '注意防雨'],
+            riskLevel: 'low'
+        }
+    ];
+    
+    const sevenDayKeyAlert = '特别关注：降雨后转晴，2-3天内是病虫害防治关键期！';
     
     // 农业影响分析
     const cropImpacts = [
@@ -9477,7 +9541,9 @@ function generateWeatherReportData(location) {
     
     return {
         currentAlerts,
-        historyStats,
+        currentWeather,
+        sevenDayWeather,
+        sevenDayKeyAlert,
         cropImpacts,
         advice,
         riskScore,
@@ -9527,8 +9593,6 @@ function generateReportHTML(data, location) {
         </div>
     `).join('');
     
-    const historyChartHTML = generateHistoryChartHTML(data.historyStats);
-    
     return `
         <!-- 报告头部 -->
         <div class="report-header">
@@ -9560,44 +9624,143 @@ function generateReportHTML(data, location) {
             </div>
         </div>
         
-        <!-- 模块二：农业影响分析 -->
+        <!-- 模块二：当前天气 -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fas fa-cloud-sun"></i>
+                <h2>当前天气</h2>
+            </div>
+            <div class="section-content">
+                <div class="weather-grid">
+                    <div class="weather-grid-item">
+                        <i class="fas fa-thermometer-half"></i>
+                        <div class="weather-label">温度</div>
+                        <div class="weather-value">${data.currentWeather.temp}</div>
+                    </div>
+                    <div class="weather-grid-item">
+                        <i class="fas fa-tint"></i>
+                        <div class="weather-label">湿度</div>
+                        <div class="weather-value">${data.currentWeather.humidity}</div>
+                    </div>
+                    <div class="weather-grid-item">
+                        <i class="fas fa-wind"></i>
+                        <div class="weather-label">风力</div>
+                        <div class="weather-value">${data.currentWeather.wind}</div>
+                    </div>
+                    <div class="weather-grid-item">
+                        <i class="fas fa-cloud"></i>
+                        <div class="weather-label">天气</div>
+                        <div class="weather-value">${data.currentWeather.condition}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模块三：近七天天气 -->
+        <div class="report-section">
+            <div class="section-header">
+                <i class="fas fa-calendar-week"></i>
+                <h2>未来7天风险预测</h2>
+            </div>
+            <div class="section-content">
+                <div class="future-timeline">
+                    ${data.sevenDayWeather.map(day => `
+                        <div class="timeline-day ${day.riskLevel}">
+                            <div class="day-header">
+                                <div class="day-info">
+                                    <span class="day-date">${day.date}</span>
+                                    <span class="day-datestr">${day.dateStr}</span>
+                                </div>
+                                <span class="day-icon">${day.icon}</span>
+                            </div>
+                            <div class="day-weather">${day.weather}</div>
+                            <div class="day-temp">${day.temp}</div>
+                            <div class="day-risks">
+                                ${day.risks.map(risk => `<span class="risk-tag ${day.riskLevel}">${risk}</span>`).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="future-alert">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>${data.sevenDayKeyAlert}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模块四：气象对作物的影响评估 -->
         <div class="report-section">
             <div class="section-header">
                 <i class="fas fa-seedling"></i>
-                <h2>对本地作物的影响评估</h2>
+                <h2>气象对作物的影响评估</h2>
             </div>
             <div class="section-content">
                 ${cropImpactsHTML}
             </div>
         </div>
         
-        <!-- 模块三：历史灾害统计 -->
+        <!-- 模块五：AI防范建议 -->
         <div class="report-section">
             <div class="section-header">
-                <i class="fas fa-chart-bar"></i>
-                <h2>过去30天灾害回顾</h2>
+                <i class="fas fa-robot"></i>
+                <h2>AI防范建议</h2>
             </div>
             <div class="section-content">
-                ${historyChartHTML}
-                <div class="history-insight">
-                    <div class="insight-icon">💡</div>
-                    <div class="insight-text">
-                        过去一个月${location.city}大风天气频发（占比${data.historyStats.byType[0]?.percent || 0}%），建议检查加固大棚设施。
+                <div class="ai-advice-container">
+                    <div class="advice-chart-section">
+                        <div class="advice-chart-card">
+                            <div class="chart-title">风险等级分布</div>
+                            <div class="risk-distribution-chart">
+                                <div class="risk-item high">
+                                    <div class="risk-bar" style="width: 40%;"></div>
+                                    <span class="risk-label">高风险</span>
+                                    <span class="risk-value">40%</span>
+                                </div>
+                                <div class="risk-item medium">
+                                    <div class="risk-bar" style="width: 35%;"></div>
+                                    <span class="risk-label">中风险</span>
+                                    <span class="risk-value">35%</span>
+                                </div>
+                                <div class="risk-item low">
+                                    <div class="risk-bar" style="width: 25%;"></div>
+                                    <span class="risk-label">低风险</span>
+                                    <span class="risk-value">25%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="advice-chart-card">
+                            <div class="chart-title">防范措施优先级</div>
+                            <div class="priority-list">
+                                <div class="priority-item high">
+                                    <div class="priority-number">1</div>
+                                    <div class="priority-content">
+                                        <div class="priority-title">紧急排水</div>
+                                        <div class="priority-desc">低洼地块立即启动排水系统，防止积水超过12小时</div>
+                                    </div>
+                                </div>
+                                <div class="priority-item medium">
+                                    <div class="priority-number">2</div>
+                                    <div class="priority-content">
+                                        <div class="priority-title">病害预防</div>
+                                        <div class="priority-desc">降雨后2-3天内是病害高发期，提前预防性用药</div>
+                                    </div>
+                                </div>
+                                <div class="priority-item low">
+                                    <div class="priority-number">3</div>
+                                    <div class="priority-content">
+                                        <div class="priority-title">设施加固</div>
+                                        <div class="priority-desc">检查并加固大棚设施，确保能抵御8级大风</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="advice-text-section">
+                        <ol class="advice-list">
+                            ${data.advice.map((item, index) => `<li>${item}</li>`).join('')}
+                        </ol>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- 模块四：防范指导与建议 -->
-        <div class="report-section">
-            <div class="section-header">
-                <i class="fas fa-lightbulb"></i>
-                <h2>防范建议</h2>
-            </div>
-            <div class="section-content">
-                <ol class="advice-list">
-                    ${data.advice.map((item, index) => `<li>${item}</li>`).join('')}
-                </ol>
             </div>
         </div>
         
