@@ -12187,17 +12187,33 @@ body {
     transform: translateY(-2px);
 }
 
-/* 消息时间戳 - 居中显示 */
+/* 消息时间戳 - 完全居中显示 */
 .weather-message-time {
     width: 100%;
     text-align: center;
     font-size: 12px;
     color: #94a3b8;
-    margin: 16px auto;
+    margin: 16px 0;
     padding: 6px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    clear: both;
+    position: relative;
+    left: 0;
+    right: 0;
+}
+
+/* 确保预览容器不影响时间戳 - 覆盖默认的 flex 布局 */
+.result-preview-container {
+    display: block !important;
+    width: 100%;
+    gap: 0 !important;
+}
+
+.result-preview-container .weather-message-time {
+    display: block;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* 隐藏底部输入区域 */
