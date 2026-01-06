@@ -4175,24 +4175,6 @@ const pageData = {
                             <!-- 消息将通过JavaScript动态添加 -->
                         </div>
                     </div>
-                    <div class="weather-input-area">
-                        <div class="weather-input-container">
-                            <button class="weather-location-btn" onclick="requestLocationPermission()" title="发送定位">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </button>
-                            <button class="weather-camera-btn" onclick="takeWeatherPhoto()" title="拍摄天象">
-                                <i class="fas fa-camera"></i>
-                            </button>
-                            <input type="text" 
-                                   class="weather-input" 
-                                   id="weatherInput" 
-                                   placeholder="问我任何气象问题..." 
-                                   onkeypress="if(event.key==='Enter') sendWeatherMessage()">
-                            <button class="weather-send-btn" onclick="sendWeatherMessage()">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         `
@@ -7636,26 +7618,25 @@ function initWeatherDisasterAgent() {
     // 清空消息
     messagesContainer.innerHTML = '';
     
-    // 尝试获取用户位置（静默）
-    getUserLocationSilent();
-    
     // 场景A：如果有历史报告，显示预览卡片 + 按钮
     if (weatherAgentState.lastGeneratedReport) {
         showWeatherResultPreview(weatherAgentState.lastGeneratedReport);
         showGenerateReportButton();
+        // 后台获取位置，用于下次生成
+        getUserLocationSilent();
     } else {
-        // 首次进入：显示欢迎消息和生成按钮
-        setTimeout(() => {
-            addWeatherMessage('ai', '您好！我是地块气象智能体，可以为您的地块生成专业的气象灾害预报。', 'text');
+        // 首次进入：先获取位置，再显示地块选择器
+        getUserLocationSilent((success) => {
+            // 无论定位成功与否，都显示地块选择器
             setTimeout(() => {
-                showGenerateReportButton();
-            }, 300);
-        }, 500);
+                showBlockSelector();
+            }, 100);
+        });
     }
 }
 
 // 静默获取用户位置
-function getUserLocationSilent() {
+function getUserLocationSilent(callback) {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -7663,12 +7644,16 @@ function getUserLocationSilent() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
+                if (callback) callback(true);
             },
             () => {
-                // 静默失败，不显示错误
+                // 定位失败，不影响使用
+                if (callback) callback(false);
             },
-            { timeout: 3000, enableHighAccuracy: true }
+            { timeout: 2000, enableHighAccuracy: false }
         );
+    } else {
+        if (callback) callback(false);
     }
 }
 
@@ -7849,6 +7834,10 @@ function showBlockSelector() {
         plotsWithDistance.sort((a, b) => a.distance - b.distance);
         recommendedPlot = plotsWithDistance[0];
         otherPlots = plotsWithDistance.slice(1);
+    } else {
+        // 没有位置信息时，默认推荐第一个地块
+        recommendedPlot = allPlots[0];
+        otherPlots = allPlots.slice(1);
     }
     
     // 构建选择器HTML
@@ -7868,9 +7857,9 @@ function showBlockSelector() {
     if (recommendedPlot) {
         selectorHTML += `
             <div class="block-item recommended" onclick="handleBlockSelection('${recommendedPlot.id}')">
-                <div class="block-badge">离我最近</div>
                 <div class="block-primary">${recommendedPlot.baseName} - ${recommendedPlot.plotName}</div>
                 <div class="block-secondary">${recommendedPlot.crop}</div>
+                <div class="block-badge-corner">离我最近</div>
             </div>
         `;
     }
@@ -8639,13 +8628,15 @@ function showWeatherResultPreview(reportData) {
     const plot = reportData.plot;
     const warningLevel = reportData.warningLevel;
     
-    // 预警等级图标和颜色
-    const warningIcons = {
-        'red': '🔴',
-        'orange': '🟠',
-        'yellow': '🟡',
-        'blue': '🔵'
+    // 预警等级图标和文字
+    const warningConfig = {
+        'red': { icon: '🔴', text: '红色预警', iconClass: 'fas fa-exclamation-circle' },
+        'orange': { icon: '🟠', text: '橙色预警', iconClass: 'fas fa-exclamation-triangle' },
+        'yellow': { icon: '🟡', text: '黄色预警', iconClass: 'fas fa-exclamation' },
+        'blue': { icon: '🔵', text: '蓝色预警', iconClass: 'fas fa-info-circle' }
     };
+    
+    const warning = warningConfig[warningLevel] || warningConfig['blue'];
     
     // 格式化时间
     const timeStr = formatTimestamp(reportData.timestamp);
@@ -8654,27 +8645,36 @@ function showWeatherResultPreview(reportData) {
     cardDiv.className = 'weather-message ai-message result-preview-container';
     cardDiv.innerHTML = `
         <div class="weather-message-time">${timeStr}</div>
-        <div class="weather-message-avatar ai-avatar">
-            <i class="fas fa-cloud-sun-rain"></i>
-        </div>
-        <div class="weather-message-content ai-content">
-            <div class="weather-result-card" onclick='showWeatherDetailPage(${JSON.stringify(reportData)})'>
-                <div class="result-header">
-                    <div class="result-location">
-                        <div class="result-title">${plot.baseName} - ${plot.plotName}</div>
-                        <div class="result-crop-badge">${plot.crop}</div>
+        <div class="weather-result-card-wrapper" onclick='showWeatherDetailPage(${JSON.stringify(reportData)})'>
+            <div class="weather-result-card-new">
+                <div class="result-card-header">
+                    <div class="result-card-icon">
+                        <i class="fas fa-cloud-sun-rain"></i>
                     </div>
-                    <div class="result-warning ${warningLevel}">
-                        <span class="warning-icon">${warningIcons[warningLevel]}</span>
-                        <span class="warning-text">${reportData.warningText}</span>
+                    <div class="result-card-info">
+                        <div class="result-card-title">${plot.baseName} - ${plot.plotName}</div>
+                        <div class="result-card-meta">
+                            <span class="result-crop-tag">${plot.crop}</span>
+                            <span class="result-stage-tag">${plot.growthStage || ''}</span>
+                        </div>
+                    </div>
+                    <div class="result-warning-badge ${warningLevel}">
+                        <i class="${warning.iconClass}"></i>
                     </div>
                 </div>
-                <div class="result-analysis">
-                    ${reportData.briefAnalysis}
+                
+                <div class="result-card-content">
+                    <div class="result-warning-info ${warningLevel}">
+                        <div class="warning-level-text">${warning.text}</div>
+                    </div>
+                    <div class="result-analysis-text">
+                        ${reportData.briefAnalysis}
+                    </div>
                 </div>
-                <div class="result-footer">
-                    <span>查看完整报告</span>
-                    <i class="fas fa-chevron-right"></i>
+                
+                <div class="result-card-footer">
+                    <span class="footer-text">查看完整报告</span>
+                    <i class="fas fa-chevron-right footer-arrow"></i>
                 </div>
             </div>
         </div>

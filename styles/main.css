@@ -11884,18 +11884,19 @@ body {
     background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
 }
 
-.block-badge {
+/* 右上角标签 */
+.block-badge-corner {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
     font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 4px;
+    padding: 4px 12px;
+    border-radius: 0 10px 0 10px;
     font-weight: 600;
-    transform: rotate(8deg);
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    z-index: 2;
 }
 
 /* 地块信息行 */
@@ -11952,7 +11953,224 @@ body {
     transition: transform 0.3s ease;
 }
 
-/* 气象结果预览卡片 */
+/* 气象结果预览卡片 - 新设计 */
+.weather-result-card-wrapper {
+    width: 100%;
+    padding: 0 8px;
+    cursor: pointer;
+}
+
+.weather-result-card-new {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.weather-result-card-new:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* 卡片头部 */
+.result-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.result-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.result-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.result-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 6px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.result-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.result-crop-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.result-stage-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* 预警徽章 */
+.result-warning-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.result-warning-badge.red {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #dc2626;
+}
+
+.result-warning-badge.orange {
+    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+    color: #ea580c;
+}
+
+.result-warning-badge.yellow {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #f59e0b;
+}
+
+.result-warning-badge.blue {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #2563eb;
+}
+
+/* 卡片内容 */
+.result-card-content {
+    padding: 16px;
+}
+
+.result-warning-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.result-warning-info.red {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.result-warning-info.orange {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    color: #ea580c;
+    border: 1px solid #fed7aa;
+}
+
+.result-warning-info.yellow {
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+    color: #f59e0b;
+    border: 1px solid #fde68a;
+}
+
+.result-warning-info.blue {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.warning-level-text {
+    font-size: 14px;
+    letter-spacing: 0.3px;
+}
+
+.result-analysis-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #475569;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border-left: 3px solid #3b82f6;
+    position: relative;
+}
+
+.result-analysis-text::before {
+    content: '"';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 24px;
+    color: #cbd5e1;
+    font-family: Georgia, serif;
+}
+
+/* 卡片底部 */
+.result-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: linear-gradient(to right, #f8fafc 0%, #f1f5f9 100%);
+    border-top: 1px solid #e2e8f0;
+}
+
+.footer-text {
+    color: #3b82f6;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.footer-arrow {
+    color: #3b82f6;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+}
+
+.weather-result-card-new:hover .footer-arrow {
+    transform: translateX(6px);
+}
+
+/* 旧样式兼容（如果还有地方用到） */
 .weather-result-card {
     width: 100%;
     background: white;
@@ -11969,118 +12187,28 @@ body {
     transform: translateY(-2px);
 }
 
-/* 结果卡片头部 */
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.result-location {
-    flex: 1;
-}
-
-.result-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 6px;
-    line-height: 1.4;
-}
-
-.result-crop-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    font-size: 12px;
-    border-radius: 6px;
-    font-weight: 500;
-}
-
-/* 预警等级标识 */
-.result-warning {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.result-warning.red {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.result-warning.orange {
-    background: #ffedd5;
-    color: #ea580c;
-}
-
-.result-warning.yellow {
-    background: #fef3c7;
-    color: #f59e0b;
-}
-
-.result-warning.blue {
-    background: #dbeafe;
-    color: #2563eb;
-}
-
-.warning-icon {
-    font-size: 16px;
-}
-
-.warning-text {
-    font-size: 12px;
-}
-
-/* 简要分析文本 */
-.result-analysis {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #475569;
-    margin-bottom: 12px;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 8px;
-    border-left: 3px solid #3b82f6;
-}
-
-/* 卡片底部 */
-.result-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    color: #3b82f6;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.result-footer i {
-    font-size: 12px;
-    transition: transform 0.3s ease;
-}
-
-.weather-result-card:hover .result-footer i {
-    transform: translateX(4px);
-}
-
-/* 消息时间戳 */
+/* 消息时间戳 - 居中显示 */
 .weather-message-time {
     width: 100%;
     text-align: center;
     font-size: 12px;
     color: #94a3b8;
-    margin: 12px 0 8px 0;
-    padding: 4px 0;
+    margin: 16px auto;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 隐藏底部输入区域 */
+.weather-input-area {
+    display: none !important;
+}
+
+/* 调整消息容器高度，占满全屏 */
+.weather-messages-container {
+    height: calc(100vh - 60px) !important;
+    padding-bottom: 20px;
 }
 
 /* 响应式调整 */
@@ -12094,9 +12222,9 @@ body {
         align-self: flex-start;
     }
     
-    .block-badge {
+    .block-badge-corner {
         font-size: 10px;
-        padding: 2px 6px;
+        padding: 3px 10px;
     }
 }
  
