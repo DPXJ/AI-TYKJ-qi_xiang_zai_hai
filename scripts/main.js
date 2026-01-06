@@ -7622,6 +7622,13 @@ function loadWeatherDisasterAgent() {
     }, 100);
 }
 
+// 全局状态管理
+let weatherAgentState = {
+    lastGeneratedReport: null,  // 最后一次生成的报告
+    userLocation: null,  // 用户位置
+    availablePlots: []  // 可用地块列表
+};
+
 function initWeatherDisasterAgent() {
     const messagesContainer = document.getElementById('weatherMessages');
     if (!messagesContainer) return;
@@ -7629,10 +7636,65 @@ function initWeatherDisasterAgent() {
     // 清空消息
     messagesContainer.innerHTML = '';
     
-    // 直接显示地块气象简报，不需要定位
+    // 尝试获取用户位置（静默）
+    getUserLocationSilent();
+    
+    // 场景A：如果有历史报告，显示预览卡片 + 按钮
+    if (weatherAgentState.lastGeneratedReport) {
+        showWeatherResultPreview(weatherAgentState.lastGeneratedReport);
+        showGenerateReportButton();
+    } else {
+        // 首次进入：显示欢迎消息和生成按钮
+        setTimeout(() => {
+            addWeatherMessage('ai', '您好！我是地块气象智能体，可以为您的地块生成专业的气象灾害预报。', 'text');
+            setTimeout(() => {
+                showGenerateReportButton();
+            }, 300);
+        }, 500);
+    }
+}
+
+// 静默获取用户位置
+function getUserLocationSilent() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                weatherAgentState.userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+            },
+            () => {
+                // 静默失败，不显示错误
+            },
+            { timeout: 3000, enableHighAccuracy: true }
+        );
+    }
+}
+
+// 显示"生成地块报告"按钮
+function showGenerateReportButton() {
+    const messagesContainer = document.getElementById('weatherMessages');
+    if (!messagesContainer) return;
+    
+    const buttonDiv = document.createElement('div');
+    buttonDiv.className = 'weather-message ai-message generate-button-container';
+    buttonDiv.innerHTML = `
+        <div class="weather-message-content ai-content" style="width: 100%; align-items: center;">
+            <button class="generate-report-btn" onclick="triggerBlockSelection()">
+                <i class="fas fa-file-alt"></i>
+                <span>生成地块报告</span>
+            </button>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(buttonDiv);
+    
+    // 滚动到底部
+    const container = document.getElementById('weatherMessagesContainer');
     setTimeout(() => {
-        showWeatherBriefing(null, null);
-    }, 500);
+        container.scrollTop = container.scrollHeight;
+    }, 100);
 }
 
 function requestLocationPermission(autoInit = false) {
@@ -7675,14 +7737,203 @@ function requestLocationPermission(autoInit = false) {
     );
 }
 
-function showLocationSelector() {
-    // 显示地块选择器
-    const chips = [
-        { text: '柘城1号地块', action: 'selectPlot', data: 'plot1' },
-        { text: '柘城2号地块', action: 'selectPlot', data: 'plot2' },
-        { text: '柘城3号地块', action: 'selectPlot', data: 'plot3' }
+// 模拟地块数据库
+function getAllPlots() {
+    return [
+        {
+            id: 'plot1',
+            baseName: '腾跃示范基地',
+            plotName: '1号地块',
+            crop: '辣椒',
+            growthStage: '坐果期',
+            location: '柘城县',
+            lat: 34.0865,
+            lng: 115.6699
+        },
+        {
+            id: 'plot2',
+            baseName: '腾跃示范基地',
+            plotName: '2号地块',
+            crop: '玉米',
+            growthStage: '抽穗期',
+            location: '柘城县',
+            lat: 34.0900,
+            lng: 115.6750
+        },
+        {
+            id: 'plot3',
+            baseName: '东方红农场',
+            plotName: 'A区地块',
+            crop: '小麦',
+            growthStage: '灌浆期',
+            location: '柘城县',
+            lat: 34.0850,
+            lng: 115.6650
+        },
+        {
+            id: 'plot4',
+            baseName: '东方红农场',
+            plotName: 'B区地块',
+            crop: '大豆',
+            growthStage: '开花期',
+            location: '柘城县',
+            lat: 34.0820,
+            lng: 115.6600
+        },
+        {
+            id: 'plot5',
+            baseName: '绿源生态园',
+            plotName: '南区地块',
+            crop: '番茄',
+            growthStage: '结果期',
+            location: '柘城县',
+            lat: 34.0890,
+            lng: 115.6720
+        },
+        {
+            id: 'plot6',
+            baseName: '绿源生态园',
+            plotName: '北区地块',
+            crop: '黄瓜',
+            growthStage: '开花期',
+            location: '柘城县',
+            lat: 34.0910,
+            lng: 115.6780
+        }
     ];
-    addWeatherMessage('ai', '以下是您可以查询的地块，请选择：', 'text', chips);
+}
+
+// 计算两点间距离（简化算法）
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // 地球半径（公里）
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// 场景B：触发生成流程
+function triggerBlockSelection() {
+    // 移除之前的生成按钮
+    const oldButton = document.querySelector('.generate-button-container');
+    if (oldButton) oldButton.remove();
+    
+    // 显示地块选择器
+    showBlockSelector();
+}
+
+// 显示地块选择器组件
+function showBlockSelector() {
+    const messagesContainer = document.getElementById('weatherMessages');
+    if (!messagesContainer) return;
+    
+    const allPlots = getAllPlots();
+    let recommendedPlot = null;
+    let otherPlots = allPlots;
+    
+    // 如果有用户位置，计算最近的地块
+    if (weatherAgentState.userLocation) {
+        const userLat = weatherAgentState.userLocation.lat;
+        const userLng = weatherAgentState.userLocation.lng;
+        
+        // 计算所有地块的距离
+        const plotsWithDistance = allPlots.map(plot => ({
+            ...plot,
+            distance: calculateDistance(userLat, userLng, plot.lat, plot.lng)
+        }));
+        
+        // 排序并获取最近的
+        plotsWithDistance.sort((a, b) => a.distance - b.distance);
+        recommendedPlot = plotsWithDistance[0];
+        otherPlots = plotsWithDistance.slice(1);
+    }
+    
+    // 构建选择器HTML
+    const selectorDiv = document.createElement('div');
+    selectorDiv.className = 'weather-message ai-message block-selector-container';
+    
+    let selectorHTML = `
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="block-selector">
+                <div class="selector-header">请选择要查询的地块：</div>
+    `;
+    
+    // 推荐地块
+    if (recommendedPlot) {
+        selectorHTML += `
+            <div class="block-item recommended" onclick="handleBlockSelection('${recommendedPlot.id}')">
+                <div class="block-badge">离我最近</div>
+                <div class="block-primary">${recommendedPlot.baseName} - ${recommendedPlot.plotName}</div>
+                <div class="block-secondary">${recommendedPlot.crop}</div>
+            </div>
+        `;
+    }
+    
+    // 其他地块（默认显示前5个）
+    const initialShowCount = 5;
+    const hasMore = otherPlots.length > initialShowCount;
+    
+    selectorHTML += '<div class="block-list">';
+    otherPlots.forEach((plot, index) => {
+        const hiddenClass = hasMore && index >= initialShowCount ? 'block-hidden' : '';
+        selectorHTML += `
+            <div class="block-item ${hiddenClass}" onclick="handleBlockSelection('${plot.id}')">
+                <div class="block-primary">${plot.baseName} - ${plot.plotName}</div>
+                <div class="block-secondary">${plot.crop}</div>
+            </div>
+        `;
+    });
+    selectorHTML += '</div>';
+    
+    // 查看更多按钮
+    if (hasMore) {
+        selectorHTML += `
+            <button class="show-more-btn" onclick="toggleMoreBlocks(this)">
+                <span class="show-more-text">查看更多</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        `;
+    }
+    
+    selectorHTML += `
+            </div>
+        </div>
+    `;
+    
+    selectorDiv.innerHTML = selectorHTML;
+    messagesContainer.appendChild(selectorDiv);
+    
+    // 滚动到底部
+    const container = document.getElementById('weatherMessagesContainer');
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 100);
+}
+
+// 切换显示更多地块
+function toggleMoreBlocks(button) {
+    const selector = button.closest('.block-selector');
+    const hiddenItems = selector.querySelectorAll('.block-hidden');
+    const icon = button.querySelector('i');
+    const text = button.querySelector('.show-more-text');
+    
+    if (hiddenItems[0].style.display === 'flex') {
+        // 收起
+        hiddenItems.forEach(item => item.style.display = 'none');
+        icon.className = 'fas fa-chevron-down';
+        text.textContent = '查看更多';
+    } else {
+        // 展开
+        hiddenItems.forEach(item => item.style.display = 'flex');
+        icon.className = 'fas fa-chevron-up';
+        text.textContent = '收起';
+    }
 }
 
 function showWeatherBriefing(lat, lng, plotInfo = null) {
@@ -8281,45 +8532,193 @@ function handleWeatherChip(action, data) {
     }
 }
 
-function handlePlotSelection(plotId) {
-    // 根据地块ID显示对应的气象简报
-    const plotData = {
-        'plot1': {
-            location: '柘城县',
-            baseName: '示范田1号',
-            crop: '玉米',
-            growthStage: '抽穗期',
-            lat: 34.0865,
-            lng: 115.6699
-        },
-        'plot2': {
-            location: '柘城县',
-            baseName: '示范田2号',
-            crop: '小麦',
-            growthStage: '灌浆期',
-            lat: 34.0900,
-            lng: 115.6750
-        },
-        'plot3': {
-            location: '柘城县',
-            baseName: '示范田3号',
-            crop: '辣椒',
-            growthStage: '坐果期',
-            lat: 34.0850,
-            lng: 115.6650
+// 处理地块选择
+function handleBlockSelection(plotId) {
+    // 移除地块选择器
+    const selectorContainer = document.querySelector('.block-selector-container');
+    if (selectorContainer) selectorContainer.remove();
+    
+    // 获取选中的地块信息
+    const allPlots = getAllPlots();
+    const selectedPlot = allPlots.find(p => p.id === plotId);
+    
+    if (!selectedPlot) return;
+    
+    // 显示用户选择消息
+    addWeatherMessage('user', `${selectedPlot.baseName} - ${selectedPlot.plotName}`, 'text');
+    
+    // 显示加载状态
+    setTimeout(() => {
+        const messagesContainer = document.getElementById('weatherMessages');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'weather-message ai-message loading-message';
+        loadingDiv.innerHTML = `
+            <div class="weather-message-avatar ai-avatar">
+                <i class="fas fa-cloud-sun-rain"></i>
+            </div>
+            <div class="weather-message-content ai-content">
+                <div class="weather-loading">
+                    <div class="loading-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="loading-text">正在为您生成 ${selectedPlot.plotName} 的报告，请稍候...</div>
+                </div>
+            </div>
+        `;
+        messagesContainer.appendChild(loadingDiv);
+        
+        // 滚动到底部
+        const container = document.getElementById('weatherMessagesContainer');
+        container.scrollTop = container.scrollHeight;
+        
+        // 模拟生成报告（1.5秒）
+        setTimeout(() => {
+            // 移除加载消息
+            loadingDiv.remove();
+            
+            // 生成报告数据
+            const reportData = generateWeatherReport(selectedPlot);
+            
+            // 保存到状态
+            weatherAgentState.lastGeneratedReport = reportData;
+            
+            // 显示预览卡片
+            showWeatherResultPreview(reportData);
+            
+            // 再次显示生成按钮
+            setTimeout(() => {
+                showGenerateReportButton();
+            }, 300);
+        }, 1500);
+    }, 500);
+}
+
+// 生成气象报告数据
+function generateWeatherReport(plot) {
+    const now = new Date();
+    
+    // 随机生成预警等级
+    const warningLevels = ['blue', 'yellow', 'orange', 'red'];
+    const warningTexts = {
+        'blue': '蓝色预警',
+        'yellow': '黄色预警',
+        'orange': '橙色预警',
+        'red': '红色预警'
+    };
+    const randomLevel = warningLevels[Math.floor(Math.random() * warningLevels.length)];
+    
+    // 生成简要分析
+    const analyses = [
+        `未来3天${plot.location}地区将有中到大雨，${plot.crop}处于${plot.growthStage}，需注意田间排水，防止积水导致根系缺氧。`,
+        `近期气温适宜，湿度偏高，适合${plot.crop}生长，但需警惕病虫害发生，建议加强田间监测。`,
+        `未来一周天气晴好，温度逐渐升高，${plot.crop}${plot.growthStage}需水量较大，建议及时灌溉。`
+    ];
+    const randomAnalysis = analyses[Math.floor(Math.random() * analyses.length)];
+    
+    return {
+        id: `report_${Date.now()}`,
+        plot: plot,
+        timestamp: now,
+        warningLevel: randomLevel,
+        warningText: warningTexts[randomLevel],
+        briefAnalysis: randomAnalysis,
+        weather: {
+            temp: `${22 + Math.floor(Math.random() * 10)}°C`,
+            humidity: `${55 + Math.floor(Math.random() * 20)}%`,
+            wind: `${2 + Math.floor(Math.random() * 3)}级`,
+            condition: ['晴', '多云', '阴', '小雨'][Math.floor(Math.random() * 4)]
         }
     };
+}
+
+// 显示气象结果预览卡片
+function showWeatherResultPreview(reportData) {
+    const messagesContainer = document.getElementById('weatherMessages');
+    if (!messagesContainer) return;
     
-    const plot = plotData[plotId];
-    if (plot) {
-        addWeatherMessage('user', `查看${plot.baseName}气象预报`, 'text');
-        setTimeout(() => {
-            addWeatherMessage('ai', '正在为您获取地块气象信息...', 'text');
-            setTimeout(() => {
-                showWeatherBriefing(plot.lat, plot.lng, plot);
-            }, 1000);
-        }, 500);
+    const plot = reportData.plot;
+    const warningLevel = reportData.warningLevel;
+    
+    // 预警等级图标和颜色
+    const warningIcons = {
+        'red': '🔴',
+        'orange': '🟠',
+        'yellow': '🟡',
+        'blue': '🔵'
+    };
+    
+    // 格式化时间
+    const timeStr = formatTimestamp(reportData.timestamp);
+    
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'weather-message ai-message result-preview-container';
+    cardDiv.innerHTML = `
+        <div class="weather-message-time">${timeStr}</div>
+        <div class="weather-message-avatar ai-avatar">
+            <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="weather-message-content ai-content">
+            <div class="weather-result-card" onclick='showWeatherDetailPage(${JSON.stringify(reportData)})'>
+                <div class="result-header">
+                    <div class="result-location">
+                        <div class="result-title">${plot.baseName} - ${plot.plotName}</div>
+                        <div class="result-crop-badge">${plot.crop}</div>
+                    </div>
+                    <div class="result-warning ${warningLevel}">
+                        <span class="warning-icon">${warningIcons[warningLevel]}</span>
+                        <span class="warning-text">${reportData.warningText}</span>
+                    </div>
+                </div>
+                <div class="result-analysis">
+                    ${reportData.briefAnalysis}
+                </div>
+                <div class="result-footer">
+                    <span>查看完整报告</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(cardDiv);
+    
+    // 滚动到底部
+    const container = document.getElementById('weatherMessagesContainer');
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 100);
+}
+
+// 格式化时间戳
+function formatTimestamp(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) {
+        return '刚刚';
+    } else if (diffMins < 60) {
+        return `${diffMins}分钟前`;
+    } else if (diffHours < 24) {
+        const hours = date.getHours();
+        const mins = date.getMinutes();
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    } else if (diffDays === 1) {
+        return '昨天';
+    } else if (diffDays < 7) {
+        return `${diffDays}天前`;
+    } else {
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        return `${month}月${day}日`;
     }
+}
+
+// 兼容旧的函数
+function handlePlotSelection(plotId) {
+    handleBlockSelection(plotId);
 }
 
 function showWeatherDetail() {
@@ -8330,15 +8729,46 @@ function showWeatherDetail() {
 let currentWeatherDetailData = null;
 
 function showWeatherDetailPage(data) {
+    // 兼容新旧数据格式
+    let detailData;
+    
+    if (data.plot) {
+        // 新格式：从 reportData 转换
+        const plot = data.plot;
+        detailData = {
+            location: plot.location || '柘城县',
+            baseName: plot.baseName,
+            crop: plot.crop,
+            growthStage: plot.growthStage,
+            trafficLight: data.warningLevel === 'red' ? 'forbidden' : 
+                         data.warningLevel === 'orange' ? 'warning' : 'suitable',
+            currentWeather: data.weather || {
+                temp: '28°C',
+                humidity: '65%',
+                wind: '3级',
+                condition: '多云'
+            },
+            alerts: data.warningLevel !== 'blue' ? [{
+                type: 'weather',
+                level: data.warningLevel,
+                text: data.warningText || data.briefAnalysis
+            }] : [],
+            relatedBases: []
+        };
+    } else {
+        // 旧格式：直接使用
+        detailData = data;
+    }
+    
     // 存储当前数据
-    currentWeatherDetailData = data;
+    currentWeatherDetailData = detailData;
     
     // 加载气象详情页面
     loadPage('weatherDetail');
     
     // 页面加载后填充内容
     setTimeout(() => {
-        renderWeatherDetailContent(data);
+        renderWeatherDetailContent(detailData);
     }, 100);
 }
 
